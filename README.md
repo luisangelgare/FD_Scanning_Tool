@@ -29,6 +29,19 @@ This tool is **experimental** and under **active development**. We encourage use
 
 ## ⚙️ Installation
 
+### For Python/PSCAD:
+
+1. Clone the repository:
+   git clone https://github.com/luisangelgare/FD-Scanning-Tool.git
+
+2. Copy and use the "Frequency Domain Scanner" component in your PSCAD project:
+   - Open your PSCAD canvas.
+   - Use `Paste Special > Paste Transfer` to insert the component into your main project.
+
+3. Place the `FDScanningTool.py` file in the same directory as your PSCAD project and follow the parameter and initialization instructions provided in the file.
+
+4. Refer to the examples included in the repository for detailed usage instructions.
+
 ### For MATLAB/Simulink:
 ```bash
 1. Clone the repository:
@@ -43,16 +56,3 @@ This tool is **experimental** and under **active development**. We encourage use
 3. Copy and follow the parameter settings of the `FDScanningTool.m` function into the initialization file of your Simulink project.
 
 4. Refer to the provided examples for detailed instructions on performing frequency-domain scanning.
-
-### For Python/PSCAD:
-
-1. Clone the repository:
-   git clone https://github.com/luisangelgare/FD-Scanning-Tool.git
-
-2. Copy and use the "Frequency Domain Scanner" component in your PSCAD project:
-   - Open your PSCAD canvas.
-   - Use `Paste Special > Paste Transfer` to insert the component into your main project.
-
-3. Place the `FDScanningTool.py` file in the same directory as your PSCAD project and follow the parameter and initialization instructions provided in the file.
-
-4. Refer to the examples included in the repository for detailed usage instructions.
