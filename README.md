@@ -23,7 +23,6 @@ This tool is **experimental** and under **active development**. We encourage use
 ### Recommended Hardware (For Optimal Performance):
 - **Processor**: Intel Core i5 or higher.
 - **RAM**: 8 GB or more.
-- **GPU**: NVIDIA or AMD with at least 2 GB of VRAM.
 
 ---
 
@@ -43,7 +42,7 @@ This tool is **experimental** and under **active development**. We encourage use
 4. Refer to the examples included in the repository for detailed usage instructions.
 
 ### For MATLAB/Simulink:
-```bash
+
 1. Clone the repository:
    git clone https://github.com/luisangelgare/FD-Scanning-Tool.git
 
@@ -53,6 +52,40 @@ This tool is **experimental** and under **active development**. We encourage use
    - Set the solver to **Ode1**.
    - Enable **Accelerator Mode** in the simulation settings.
 
-3. Copy and follow the parameter settings of the `FDScanningTool.m` function into the initialization file of your Simulink project.
+3. Copy and follow the parameter settings of the `exe_FDScanningTool.m` program into the initialization file of your project.
 
 4. Refer to the provided examples for detailed instructions on performing frequency-domain scanning.
+
+### Examples availables with linear validation:
+
+1. ABC scanning 
+   1.1. Voltage perturbation:
+      - RLC load (balanced).
+      - RLC load (unbalanced).
+      - FD transmission line (balanced).
+   1.2. Current perturbation:
+      - RLC load (balanced).
+      - RLC load (unbalanced)
+      - FD transmission line (balanced).
+
+2. dq0 scanning 
+   2.1. Voltage perturbation:
+      - RLC load (balanced).
+      - PI section (balanced).
+   2.2. Current perturbation:
+      - RLC load (balanced).
+      - PI section (balanced).
+
+3. pn0 scanning 
+   3.1. Voltage perturbation:
+      - RLC load (balanced).
+      - RLC load (unbalanced).
+      - PI section (balanced).
+      - PI section (unbalanced).
+      - FD transmission line (balanced).
+   3.2. Current perturbation:
+      - RLC load (balanced).
+      - RLC load (unbalanced).
+      - PI section (balanced).
+      - PI section (unbalanced).
+      - FD transmission line (balanced).
