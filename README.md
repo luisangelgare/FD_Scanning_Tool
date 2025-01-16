@@ -56,36 +56,39 @@ This tool is **experimental** and under **active development**. We encourage use
 
 4. Refer to the provided examples for detailed instructions on performing frequency-domain scanning.
 
-### Examples availables with linear validation:
+### Examples available with linear validation in MATLAB and PSCAD:
 
-1. ABC scanning 
-   1.1. Voltage perturbation:
-      - RLC load (balanced).
-      - RLC load (unbalanced).
-      - FD transmission line (balanced).
-   1.2. Current perturbation:
-      - RLC load (balanced).
-      - RLC load (unbalanced)
-      - FD transmission line (balanced).
+1. **ABC scanning**  
+   - **Voltage perturbation:**  
+     - RLC load (balanced)  
+     - RLC load (unbalanced)  
+     - FD transmission line (balanced)  
+   - **Current perturbation:**  
+     - RLC load (balanced)  
+     - RLC load (unbalanced)  
+     - FD transmission line (balanced)  
 
-2. dq0 scanning 
-   2.1. Voltage perturbation:
-      - RLC load (balanced).
-      - PI section (balanced).
-   2.2. Current perturbation:
-      - RLC load (balanced).
-      - PI section (balanced).
+2. **dq0 scanning**  
+   - **Voltage perturbation:**  
+     - RLC load (balanced)  
+     - PI section (balanced)  
+   - **Current perturbation:**  
+     - RLC load (balanced)  
+     - PI section (balanced)  
 
-3. pn0 scanning 
-   3.1. Voltage perturbation:
-      - RLC load (balanced).
-      - RLC load (unbalanced).
-      - PI section (balanced).
-      - PI section (unbalanced).
-      - FD transmission line (balanced).
-   3.2. Current perturbation:
-      - RLC load (balanced).
-      - RLC load (unbalanced).
-      - PI section (balanced).
-      - PI section (unbalanced).
-      - FD transmission line (balanced).
+3. **pn0 scanning**  
+   - **Voltage perturbation:**  
+     - RLC load (balanced)  
+     - RLC load (unbalanced)  
+     - PI section (balanced)  
+     - PI section (unbalanced)  
+     - FD transmission line (balanced)  
+   - **Current perturbation:**  
+     - RLC load (balanced)  
+     - RLC load (unbalanced)  
+     - PI section (balanced)  
+     - PI section (unbalanced)  
+     - FD transmission line (balanced)  
+
+## 🚨 Important Advice
+ Recommended to Use first the MATLAB version in order to understand the operating steps of the tool.
