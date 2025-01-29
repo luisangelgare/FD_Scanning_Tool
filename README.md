@@ -89,6 +89,7 @@ This tool is **experimental** and under **active development**. We encourage use
      - PI section (balanced)  
      - PI section (unbalanced)  
      - FD transmission line (balanced)  
+(For the moment, just voltage perturbation strategy is available in PSCAD)
 
 ## 🚨 Important Advice
  Recommended to Use first the MATLAB version in order to understand the operating steps of the tool.
