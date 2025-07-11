@@ -1,8 +1,8 @@
-# FD Scanning Tool
+# SIaD Tool
 
-Welcome to the comprehensive **Frequency-Domain (FD) Scanning Tool** for modern power system applications. This open-access, multi-platform tool is implemented in **MATLAB/Simulink** and **Python/PSCAD** environments and is freely available for use.
+Welcome to the **Stability and Interactions assessment in the frequency-Domain (SIaD)** tool for modern power system applications. This free-access, multi-platform tool is implemented in **MATLAB/Simulink** and **Python/PSCAD** environments.
 
-The **FD Scanning Tool** has been developed as part of the **MSCA-ADOreD** project, funded by the European Union’s Horizon Europe Research and Innovation Programme under the **Marie Skłodowska-Curie grant agreement No. 101073554**.
+The **SIaD Tool** has been developed as part of the **MSCA-ADOreD** project, funded by the European Union’s Horizon Europe Research and Innovation Programme under the **Marie Skłodowska-Curie grant agreement No. 101073554**.
 
 ---
 
@@ -40,6 +40,7 @@ This tool is **experimental** and under **active development**. We encourage use
 3. Place the `FDScanningTool.py` file in the same directory as your PSCAD project and follow the parameter and initialization instructions provided in the file.
 
 4. Refer to the examples included in the repository for detailed usage instructions.
+5. For the moment, just voltage perturbation and single-tone strategy is available in PSCAD.
 
 ### For MATLAB/Simulink:
 
@@ -52,44 +53,11 @@ This tool is **experimental** and under **active development**. We encourage use
    - Set the solver to **Ode1**.
    - Enable **Accelerator Mode** in the simulation settings.
 
-3. Copy and follow the parameter settings of the `exe_FDScanningTool.m` program into the initialization file of your project.
+3. Copy and follow the parameter settings of the `exe_FDScanningTool.m` program into your project directory.
 
-4. Refer to the provided examples for detailed instructions on performing frequency-domain scanning.
+4. Refer to the **Manual_V2_SIaD_Tool.pdf** for the details about the configuration and installation process.
 
-### Examples available with linear validation in MATLAB and PSCAD:
-
-1. **ABC scanning**  
-   - **Voltage perturbation:**  
-     - RLC load (balanced)  
-     - RLC load (unbalanced)  
-     - FD transmission line (balanced)  
-   - **Current perturbation:**  
-     - RLC load (balanced)  
-     - RLC load (unbalanced)  
-     - FD transmission line (balanced)  
-
-2. **dq0 scanning**  
-   - **Voltage perturbation:**  
-     - RLC load (balanced)  
-     - PI section (balanced)  
-   - **Current perturbation:**  
-     - RLC load (balanced)  
-     - PI section (balanced)  
-
-3. **pn0 scanning**  
-   - **Voltage perturbation:**  
-     - RLC load (balanced)  
-     - RLC load (unbalanced)  
-     - PI section (balanced)  
-     - PI section (unbalanced)  
-     - FD transmission line (balanced)  
-   - **Current perturbation:**  
-     - RLC load (balanced)  
-     - RLC load (unbalanced)  
-     - PI section (balanced)  
-     - PI section (unbalanced)  
-     - FD transmission line (balanced)  
-(For the moment, just voltage perturbation strategy is available in PSCAD)
+### Examples will be available soon!
 
 ## 🚨 Important Advice
  Recommended to Use first the MATLAB version in order to understand the operating steps of the tool.
