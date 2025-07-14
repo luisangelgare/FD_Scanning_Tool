@@ -24,8 +24,13 @@ fd0=unique(round(logspace(0,log10((1/delta_t)/4),5)));  % Perturbation frequenci
 f0=50; % Fundamental base frequency
 w=2*pi*f0; % Base angular frequency (rad/s)
 Sbase=2.75E6; % Base power (VSC or System to idenfify)
-Vpeak=(690/sqrt(3))*sqrt(2); % Fundamental peak voltage at the connection
+Vbase=1; % Base voltage (V)
+Vpeak=(Vbase/sqrt(3))*sqrt(2); % Fundamental peak voltage at the connection
+Vq_ss=0; % q-component steady state voltage at bus under analysis
+Vd_ss=0; % d-component steady state voltage at bus under analysis
 Ipeak=Sbase/Vpeak; % Fundamental peak current through the link
+Iq_ss=0; % q-component steady state current at link under analysis
+Id_ss=0; % d-component steady state current at link under analysis
 Vperturbation=0.03; % Percentage of nominal voltage perturbation
 Iperturbation=0.03; % Percentage of nominal current perturbation
 

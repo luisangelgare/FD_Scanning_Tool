@@ -40,6 +40,17 @@ phi=(2/3)*pi; % Phase of 120º between phases
 Vdist_value=0.01*Vpeak; % Voltage disturbance value
 Idist_value=0.03*Ipeak; % Current disturbance value
 dist_time=dist_time_ss; % Set the first disturbance time for steady state
+% Logic to determine the ss_type
+if Vq_ss == 0 && Vd_ss == 0
+    Vss_type = 1; % Three-phase ss voltage source
+else
+    Vss_type = 2; % dq0 to ABC ss voltage source
+end
+if Iq_ss == 0 && Id_ss == 0
+    Iss_type = 1; % Three-phase ss current source
+else
+    Iss_type = 2; % dq0 to ABC ss current source
+end
 
 %% Signal disturbance development with multi-sine and random binary strategies
 
