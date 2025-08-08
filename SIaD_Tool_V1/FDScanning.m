@@ -26,13 +26,14 @@
 
 %% Preliminar parameters based on the simulation settings
 
+fd=0; % set initial disturbance frequency
 fsampling=round(1/delta_t); % Sampling frequency for the simulation 
 Tobs0=1/fs; % Total time window
 t_w1=Tinit; % Starting time window
 t_w2=Tinit+Tobs0; % Ending time window
 Tobs=t_w2; % Full observation time
 dist_time_ss=Tobs+10000; % No disturbance for calculating the steady state
-dist_time_f=Tinit-0.3; % effective disturbance time for the scanner
+dist_time_f=Tinit-0.8; % effective disturbance time for the scanner
 time_vector=(t_w1:delta_t:t_w2)'; % Time vector for the disturbance
 samples_window=length(time_vector); % Ensure samples is an integer
 Rsource=1E-6; % Fundamental series resistance (suggested to avoid errors)
@@ -79,11 +80,9 @@ switch signal_type
     case 3
         % Cosenoidal signals perturbation strategy
         freq_multiples = [1, 2, 3, 4, 5, 6, 7, 8]; % Multiples of the base frequency
-        specific_freqs = [fd0(1),fd0(end)]; % If non-empty, this overrides freq_multiples
-        Vmag = Vdist_value*ones(1,length(specific_freqs)); % Amplitudes for each frequency
-        Imag = Idist_value*ones(1,length(specific_freqs)); % Amplitudes for each frequency
+        specific_freqs = fd0; % If non-empty, this overrides freq_multiples
         % Combine into a 2-dimensional vector [time, signal]
-        Vdisturbance_signal = multisine([fd0(1),7*f0], fsampling, samples_window, ...
+        Vdisturbance_signal = multisine(specific_freqs, fsampling, samples_window, ...
               'PhaseResponse', 'Schroeder', ... %  Schroeder phases
               'Normalise', true, ...            % Norm of the signal
               'StartAtZero', false);             % Initialize in a zero-crossing point
@@ -133,6 +132,7 @@ single_tone_I_0pn=[model, '/SIaD Tool/Frequency Scanner/Current Strategy/pn0dist
 
 %% Steady state calculation stage
 
+if ss_cal==1
 set_param(FD_Scanner, 'Commented', 'on');
 set_param(Normal_State, 'Commented', 'off');
 set_param(SS_Meas, 'Commented', 'off');
@@ -146,34 +146,56 @@ Vq_ss=out.Vdq_ss(end-10,2);
 Id_ss=out.Idq_ss(end-10,1);
 Iq_ss=out.Idq_ss(end-10,2);
 dist_time=dist_time_f;
-
 switch scanner_selector
     case 1
                 td1=find((out.tout)>=t_w1,1); % t1 time window
                 td2=find((out.tout)>=t_w2,1); % t2 time window
-                va_ss=out.Vabc_ss(td1:td2,1);
-                vb_ss=out.Vabc_ss(td1:td2,2);
-                vc_ss=out.Vabc_ss(td1:td2,3);
-                ia_ss=out.Iabc_ss(td1:td2,1);
-                ib_ss=out.Iabc_ss(td1:td2,2);
-                ic_ss=out.Iabc_ss(td1:td2,3);
+                % System 1
+                va_ss1=out.Vabc_ss(td1:td2,1);
+                vb_ss1=out.Vabc_ss(td1:td2,2);
+                vc_ss1=out.Vabc_ss(td1:td2,3);
+                ia_ss1=out.Iabc_ss(td1:td2,1);
+                ib_ss1=out.Iabc_ss(td1:td2,2);
+                ic_ss1=out.Iabc_ss(td1:td2,3);
+                % System 2
+                va_ss2=va_ss1;
+                vb_ss2=vb_ss1;
+                vc_ss2=vc_ss1;
+                ia_ss2=ia_ss1;
+                ib_ss2=ib_ss1;
+                ic_ss2=ic_ss1;
                 
     case 2
                 td1=find((out.tout)>=t_w1,1); % t1 time window
                 td2=find((out.tout)>=t_w2,1); % t2 time window
-                vq_ss=out.Vdq_ss(td1:td2,2);
-                vd_ss=out.Vdq_ss(td1:td2,1);
-                iq_ss=out.Idq_ss(td1:td2,2);
-                id_ss=out.Idq_ss(td1:td2,1);
+                % System 1
+                vq_ss1=out.Vdq_ss(td1:td2,2);
+                vd_ss1=out.Vdq_ss(td1:td2,1);
+                iq_ss1=out.Idq_ss(td1:td2,2);
+                id_ss1=out.Idq_ss(td1:td2,1);
+                % System 2
+                vq_ss2=vq_ss1;
+                vd_ss2=vd_ss1;
+                iq_ss2=iq_ss1;
+                id_ss2=id_ss1;
     case 3
                 td1=find((out.tout)>=t_w1,1); % t1 time window
-                td2=find((out.tout)>=t_w2,1); % t2 time window     
-                v0_ss=out.V0pn_ss(td1:td2,1);
-                vp_ss=out.V0pn_ss(td1:td2,2);
-                vn_ss=out.V0pn_ss(td1:td2,3);
-                i0_ss=out.I0pn_ss(td1:td2,1);
-                ip_ss=out.I0pn_ss(td1:td2,2);
-                in_ss=out.I0pn_ss(td1:td2,3);
+                td2=find((out.tout)>=t_w2,1); % t2 time window
+                % System 1
+                v0_ss1=out.V0pn_ss(td1:td2,1);
+                vp_ss1=out.V0pn_ss(td1:td2,2);
+                vn_ss1=out.V0pn_ss(td1:td2,3);
+                i0_ss1=out.I0pn_ss(td1:td2,1);
+                ip_ss1=out.I0pn_ss(td1:td2,2);
+                in_ss1=out.I0pn_ss(td1:td2,3);
+                % System 2
+                v0_ss2=v0_ss1;
+                vp_ss2=vp_ss1;
+                vn_ss2=vn_ss1;
+                i0_ss2=i0_ss1;
+                ip_ss2=ip_ss1;
+                in_ss2=in_ss1;
+end
 end
 
 %% Comprehensive frequency scanning tool methodology (abs, dq0, pn0)
@@ -216,6 +238,26 @@ switch scanner_selector
                 dist_value_b=zeros(samples_window,2);
                 dist_value_c=zeros(samples_window,2);
             end
+            if ss_cal~=1
+                out=sim(program);
+                td1=find((out.tout)>=t_w1,1); % t1 time window
+                td2=find((out.tout)>=t_w2,1); % t2 time window
+                % System 1
+                va_ss1=out.Vabc1(td1:td2,1);
+                vb_ss1=out.Vabc1(td1:td2,2);
+                vc_ss1=out.Vabc1(td1:td2,3);
+                ia_ss1=out.Iabc1(td1:td2,1);
+                ib_ss1=out.Iabc1(td1:td2,2);
+                ic_ss1=out.Iabc1(td1:td2,3);
+                % System 2
+                va_ss2=out.Vabc2(td1:td2,1);
+                vb_ss2=out.Vabc2(td1:td2,2);
+                vc_ss2=out.Vabc2(td1:td2,3);
+                ia_ss2=out.Iabc2(td1:td2,1);
+                ib_ss2=out.Iabc2(td1:td2,2);
+                ic_ss2=out.Iabc2(td1:td2,3);
+                dist_time=dist_time_f;
+            end
             if signal_type==1
                 for n=1:length(fd0)
                     fd=fd0(n);
@@ -232,12 +274,12 @@ switch scanner_selector
                     ia_1=out.Iabc1(td1:td2,1);
                     ib_1=out.Iabc1(td1:td2,2);
                     ic_1=out.Iabc1(td1:td2,3);
-                    Va_1=fft(va_1-va_ss)/length(va_1);
-                    Vb_1=fft(vb_1-vb_ss)/length(vb_1);
-                    Vc_1=fft(vc_1-vc_ss)/length(vc_1);
-                    Ia_1=fft(ia_1-ia_ss)/length(ia_1);
-                    Ib_1=fft(ib_1-ib_ss)/length(ib_1);
-                    Ic_1=fft(ic_1-ic_ss)/length(ic_1);
+                    Va_1=fft(va_1-va_ss1)/length(va_1);
+                    Vb_1=fft(vb_1-vb_ss1)/length(vb_1);
+                    Vc_1=fft(vc_1-vc_ss1)/length(vc_1);
+                    Ia_1=fft(ia_1-ia_ss1)/length(ia_1);
+                    Ib_1=fft(ib_1-ib_ss1)/length(ib_1);
+                    Ic_1=fft(ic_1-ic_ss1)/length(ic_1);
                     % System 2
                     va_2=out.Vabc2(td1:td2,1);
                     vb_2=out.Vabc2(td1:td2,2);
@@ -245,12 +287,12 @@ switch scanner_selector
                     ia_2=out.Iabc2(td1:td2,1);
                     ib_2=out.Iabc2(td1:td2,2);
                     ic_2=out.Iabc2(td1:td2,3);
-                    Va_2=fft(va_2-va_ss)/length(va_2);
-                    Vb_2=fft(vb_2-vb_ss)/length(vb_2);
-                    Vc_2=fft(vc_2-vc_ss)/length(vc_2);
-                    Ia_2=fft(ia_2-ia_ss)/length(ia_2);
-                    Ib_2=fft(ib_2-ib_ss)/length(ib_2);
-                    Ic_2=fft(ic_2-ic_ss)/length(ic_2);
+                    Va_2=fft(va_2-va_ss2)/length(va_2);
+                    Vb_2=fft(vb_2-vb_ss2)/length(vb_2);
+                    Vc_2=fft(vc_2-vc_ss2)/length(vc_2);
+                    Ia_2=fft(ia_2-ia_ss2)/length(ia_2);
+                    Ib_2=fft(ib_2-ib_ss2)/length(ib_2);
+                    Ic_2=fft(ic_2-ic_ss2)/length(ic_2);
                     wd=round(fd/fs)+1;
                     % System 1
                     Yaa_1=Ia_1(wd)/Va_1(wd);
@@ -272,12 +314,12 @@ switch scanner_selector
                     ia_1=out.Iabc1(td1:td2,1);
                     ib_1=out.Iabc1(td1:td2,2);
                     ic_1=out.Iabc1(td1:td2,3);
-                    Va_1=fft(va_1-va_ss)/length(va_1);
-                    Vb_1=fft(vb_1-vb_ss)/length(vb_1);
-                    Vc_1=fft(vc_1-vc_ss)/length(vc_1);
-                    Ia_1=fft(ia_1-ia_ss)/length(ia_1);
-                    Ib_1=fft(ib_1-ib_ss)/length(ib_1);
-                    Ic_1=fft(ic_1-ic_ss)/length(ic_1);
+                    Va_1=fft(va_1-va_ss1)/length(va_1);
+                    Vb_1=fft(vb_1-vb_ss1)/length(vb_1);
+                    Vc_1=fft(vc_1-vc_ss1)/length(vc_1);
+                    Ia_1=fft(ia_1-ia_ss1)/length(ia_1);
+                    Ib_1=fft(ib_1-ib_ss1)/length(ib_1);
+                    Ic_1=fft(ic_1-ic_ss1)/length(ic_1);
                     % System 2
                     va_2=out.Vabc2(td1:td2,1);
                     vb_2=out.Vabc2(td1:td2,2);
@@ -285,12 +327,12 @@ switch scanner_selector
                     ia_2=out.Iabc2(td1:td2,1);
                     ib_2=out.Iabc2(td1:td2,2);
                     ic_2=out.Iabc2(td1:td2,3);
-                    Va_2=fft(va_2-va_ss)/length(va_2);
-                    Vb_2=fft(vb_2-vb_ss)/length(vb_2);
-                    Vc_2=fft(vc_2-vc_ss)/length(vc_2);
-                    Ia_2=fft(ia_2-ia_ss)/length(ia_2);
-                    Ib_2=fft(ib_2-ib_ss)/length(ib_2);
-                    Ic_2=fft(ic_2-ic_ss)/length(ic_2);
+                    Va_2=fft(va_2-va_ss2)/length(va_2);
+                    Vb_2=fft(vb_2-vb_ss2)/length(vb_2);
+                    Vc_2=fft(vc_2-vc_ss2)/length(vc_2);
+                    Ia_2=fft(ia_2-ia_ss2)/length(ia_2);
+                    Ib_2=fft(ib_2-ib_ss2)/length(ib_2);
+                    Ic_2=fft(ic_2-ic_ss2)/length(ic_2);
                     % System 1
                     Yab_1=Ia_1(wd)/Vb_1(wd);
                     Ybb_1=Ib_1(wd)/Vb_1(wd);
@@ -311,12 +353,12 @@ switch scanner_selector
                     ia_1=out.Iabc1(td1:td2,1);
                     ib_1=out.Iabc1(td1:td2,2);
                     ic_1=out.Iabc1(td1:td2,3);
-                    Va_1=fft(va_1-va_ss)/length(va_1);
-                    Vb_1=fft(vb_1-vb_ss)/length(vb_1);
-                    Vc_1=fft(vc_1-vc_ss)/length(vc_1);
-                    Ia_1=fft(ia_1-ia_ss)/length(ia_1);
-                    Ib_1=fft(ib_1-ib_ss)/length(ib_1);
-                    Ic_1=fft(ic_1-ic_ss)/length(ic_1);
+                    Va_1=fft(va_1-va_ss1)/length(va_1);
+                    Vb_1=fft(vb_1-vb_ss1)/length(vb_1);
+                    Vc_1=fft(vc_1-vc_ss1)/length(vc_1);
+                    Ia_1=fft(ia_1-ia_ss1)/length(ia_1);
+                    Ib_1=fft(ib_1-ib_ss1)/length(ib_1);
+                    Ic_1=fft(ic_1-ic_ss1)/length(ic_1);
                     % System 2
                     va_2=out.Vabc2(td1:td2,1);
                     vb_2=out.Vabc2(td1:td2,2);
@@ -324,12 +366,12 @@ switch scanner_selector
                     ia_2=out.Iabc2(td1:td2,1);
                     ib_2=out.Iabc2(td1:td2,2);
                     ic_2=out.Iabc2(td1:td2,3);
-                    Va_2=fft(va_2-va_ss)/length(va_2);
-                    Vb_2=fft(vb_2-vb_ss)/length(vb_2);
-                    Vc_2=fft(vc_2-vc_ss)/length(vc_2);
-                    Ia_2=fft(ia_2-ia_ss)/length(ia_2);
-                    Ib_2=fft(ib_2-ib_ss)/length(ib_2);
-                    Ic_2=fft(ic_2-ic_ss)/length(ic_2);
+                    Va_2=fft(va_2-va_ss2)/length(va_2);
+                    Vb_2=fft(vb_2-vb_ss2)/length(vb_2);
+                    Vc_2=fft(vc_2-vc_ss2)/length(vc_2);
+                    Ia_2=fft(ia_2-ia_ss2)/length(ia_2);
+                    Ib_2=fft(ib_2-ib_ss2)/length(ib_2);
+                    Ic_2=fft(ic_2-ic_ss2)/length(ic_2);
                     % System 1
                     Yac_1=Ia_1(wd)/Vc_1(wd);
                     Ybc_1=Ib_1(wd)/Vc_1(wd);
@@ -364,12 +406,12 @@ switch scanner_selector
                 ia_1=out.Iabc1(td1:td2,1);
                 ib_1=out.Iabc1(td1:td2,2);
                 ic_1=out.Iabc1(td1:td2,3);
-                Va_1=fft(va_1-va_ss)/length(va_1);
-                Vb_1=fft(vb_1-vb_ss)/length(vb_1);
-                Vc_1=fft(vc_1-vc_ss)/length(vc_1);
-                Ia_1=fft(ia_1-ia_ss)/length(ia_1);
-                Ib_1=fft(ib_1-ib_ss)/length(ib_1);
-                Ic_1=fft(ic_1-ic_ss)/length(ic_1);
+                Va_1=fft(va_1-va_ss1)/length(va_1);
+                Vb_1=fft(vb_1-vb_ss1)/length(vb_1);
+                Vc_1=fft(vc_1-vc_ss1)/length(vc_1);
+                Ia_1=fft(ia_1-ia_ss1)/length(ia_1);
+                Ib_1=fft(ib_1-ib_ss1)/length(ib_1);
+                Ic_1=fft(ic_1-ic_ss1)/length(ic_1);
                 % System 2
                 va_2=out.Vabc2(td1:td2,1);
                 vb_2=out.Vabc2(td1:td2,2);
@@ -377,12 +419,12 @@ switch scanner_selector
                 ia_2=out.Iabc2(td1:td2,1);
                 ib_2=out.Iabc2(td1:td2,2);
                 ic_2=out.Iabc2(td1:td2,3);
-                Va_2=fft(va_2-va_ss)/length(va_2);
-                Vb_2=fft(vb_2-vb_ss)/length(vb_2);
-                Vc_2=fft(vc_2-vc_ss)/length(vc_2);
-                Ia_2=fft(ia_2-ia_ss)/length(ia_2);
-                Ib_2=fft(ib_2-ib_ss)/length(ib_2);
-                Ic_2=fft(ic_2-ic_ss)/length(ic_2);
+                Va_2=fft(va_2-va_ss2)/length(va_2);
+                Vb_2=fft(vb_2-vb_ss2)/length(vb_2);
+                Vc_2=fft(vc_2-vc_ss2)/length(vc_2);
+                Ia_2=fft(ia_2-ia_ss2)/length(ia_2);
+                Ib_2=fft(ib_2-ib_ss2)/length(ib_2);
+                Ic_2=fft(ic_2-ic_ss2)/length(ic_2);
                 % System 1
                 Yaa_1=Ia_1./Va_1;
                 Yba_1=Ib_1./Va_1;
@@ -403,12 +445,12 @@ switch scanner_selector
                 ia_1=out.Iabc1(td1:td2,1);
                 ib_1=out.Iabc1(td1:td2,2);
                 ic_1=out.Iabc1(td1:td2,3);
-                Va_1=fft(va_1-va_ss)/length(va_1);
-                Vb_1=fft(vb_1-vb_ss)/length(vb_1);
-                Vc_1=fft(vc_1-vc_ss)/length(vc_1);
-                Ia_1=fft(ia_1-ia_ss)/length(ia_1);
-                Ib_1=fft(ib_1-ib_ss)/length(ib_1);
-                Ic_1=fft(ic_1-ic_ss)/length(ic_1);
+                Va_1=fft(va_1-va_ss1)/length(va_1);
+                Vb_1=fft(vb_1-vb_ss1)/length(vb_1);
+                Vc_1=fft(vc_1-vc_ss1)/length(vc_1);
+                Ia_1=fft(ia_1-ia_ss1)/length(ia_1);
+                Ib_1=fft(ib_1-ib_ss1)/length(ib_1);
+                Ic_1=fft(ic_1-ic_ss1)/length(ic_1);
                 % System 2
                 va_2=out.Vabc2(td1:td2,1);
                 vb_2=out.Vabc2(td1:td2,2);
@@ -416,12 +458,12 @@ switch scanner_selector
                 ia_2=out.Iabc2(td1:td2,1);
                 ib_2=out.Iabc2(td1:td2,2);
                 ic_2=out.Iabc2(td1:td2,3);
-                Va_2=fft(va_2-va_ss)/length(va_2);
-                Vb_2=fft(vb_2-vb_ss)/length(vb_2);
-                Vc_2=fft(vc_2-vc_ss)/length(vc_2);
-                Ia_2=fft(ia_2-ia_ss)/length(ia_2);
-                Ib_2=fft(ib_2-ib_ss)/length(ib_2);
-                Ic_2=fft(ic_2-ic_ss)/length(ic_2);
+                Va_2=fft(va_2-va_ss2)/length(va_2);
+                Vb_2=fft(vb_2-vb_ss2)/length(vb_2);
+                Vc_2=fft(vc_2-vc_ss2)/length(vc_2);
+                Ia_2=fft(ia_2-ia_ss2)/length(ia_2);
+                Ib_2=fft(ib_2-ib_ss2)/length(ib_2);
+                Ic_2=fft(ic_2-ic_ss2)/length(ic_2);
                 % System 1
                 Yab_1=Ia_1./Vb_1;
                 Ybb_1=Ib_1./Vb_1;
@@ -442,12 +484,12 @@ switch scanner_selector
                 ia_1=out.Iabc1(td1:td2,1);
                 ib_1=out.Iabc1(td1:td2,2);
                 ic_1=out.Iabc1(td1:td2,3);
-                Va_1=fft(va_1-va_ss)/length(va_1);
-                Vb_1=fft(vb_1-vb_ss)/length(vb_1);
-                Vc_1=fft(vc_1-vc_ss)/length(vc_1);
-                Ia_1=fft(ia_1-ia_ss)/length(ia_1);
-                Ib_1=fft(ib_1-ib_ss)/length(ib_1);
-                Ic_1=fft(ic_1-ic_ss)/length(ic_1);
+                Va_1=fft(va_1-va_ss1)/length(va_1);
+                Vb_1=fft(vb_1-vb_ss1)/length(vb_1);
+                Vc_1=fft(vc_1-vc_ss1)/length(vc_1);
+                Ia_1=fft(ia_1-ia_ss1)/length(ia_1);
+                Ib_1=fft(ib_1-ib_ss1)/length(ib_1);
+                Ic_1=fft(ic_1-ic_ss1)/length(ic_1);
                 % System 2
                 va_2=out.Vabc2(td1:td2,1);
                 vb_2=out.Vabc2(td1:td2,2);
@@ -455,12 +497,12 @@ switch scanner_selector
                 ia_2=out.Iabc2(td1:td2,1);
                 ib_2=out.Iabc2(td1:td2,2);
                 ic_2=out.Iabc2(td1:td2,3);
-                Va_2=fft(va_2-va_ss)/length(va_2);
-                Vb_2=fft(vb_2-vb_ss)/length(vb_2);
-                Vc_2=fft(vc_2-vc_ss)/length(vc_2);
-                Ia_2=fft(ia_2-ia_ss)/length(ia_2);
-                Ib_2=fft(ib_2-ib_ss)/length(ib_2);
-                Ic_2=fft(ic_2-ic_ss)/length(ic_2);
+                Va_2=fft(va_2-va_ss2)/length(va_2);
+                Vb_2=fft(vb_2-vb_ss2)/length(vb_2);
+                Vc_2=fft(vc_2-vc_ss2)/length(vc_2);
+                Ia_2=fft(ia_2-ia_ss2)/length(ia_2);
+                Ib_2=fft(ib_2-ib_ss2)/length(ib_2);
+                Ic_2=fft(ic_2-ic_ss2)/length(ic_2);
                 % System 1
                 Yac_1=Ia_1./Vc_1;
                 Ybc_1=Ib_1./Vc_1;
@@ -477,12 +519,15 @@ switch scanner_selector
                                     Yba_2(n) Ybb_2(n) Ybc_2(n)
                                     Yca_2(n) Ycb_2(n) Ycc_2(n)];
                 end
-                fd0=(1:samples_window)*fs;
+                fvec=(1:samples_window)*fs;
+                f_lim=find((fvec)>=fd0(end),1);
+                Y_abc1=Y_abc1(:,:,1:f_lim);
+                Y_abc2=Y_abc2(:,:,1:f_lim);
+                fd0=fvec(1:f_lim);
             end
         else
             set_param(voltage_type, 'Commented', 'on');
             set_param(current_type, 'Commented', 'off');
-            fd=0; % Frequency value
             if signal_type==1
                 set_param(multi_tone_I_ABC, 'Commented', 'on');
                 set_param(single_tone_I_ABC, 'Commented', 'off');
@@ -495,6 +540,26 @@ switch scanner_selector
                 dist_value_a=zeros(samples_window,2);
                 dist_value_b=zeros(samples_window,2);
                 dist_value_c=zeros(samples_window,2);
+            end
+            if ss_cal~=1
+                out=sim(program);
+                td1=find((out.tout)>=t_w1,1); % t1 time window
+                td2=find((out.tout)>=t_w2,1); % t2 time window
+                % System 1
+                va_ss1=out.Vabc1(td1:td2,1);
+                vb_ss1=out.Vabc1(td1:td2,2);
+                vc_ss1=out.Vabc1(td1:td2,3);
+                ia_ss1=out.Iabc1(td1:td2,1);
+                ib_ss1=out.Iabc1(td1:td2,2);
+                ic_ss1=out.Iabc1(td1:td2,3);
+                % System 2
+                va_ss2=out.Vabc2(td1:td2,1);
+                vb_ss2=out.Vabc2(td1:td2,2);
+                vc_ss2=out.Vabc2(td1:td2,3);
+                ia_ss2=out.Iabc2(td1:td2,1);
+                ib_ss2=out.Iabc2(td1:td2,2);
+                ic_ss2=out.Iabc2(td1:td2,3);
+                dist_time=dist_time_f;
             end
             if signal_type==1
                 for n=1:length(fd0)
@@ -512,12 +577,12 @@ switch scanner_selector
                     ia_1=out.Iabc1(td1:td2,1);
                     ib_1=out.Iabc1(td1:td2,2);
                     ic_1=out.Iabc1(td1:td2,3);
-                    Va_a1=fft(va_1-va_ss)/length(va_1);
-                    Vb_a1=fft(vb_1-vb_ss)/length(vb_1);
-                    Vc_a1=fft(vc_1-vc_ss)/length(vc_1);
-                    Ia_a1=fft(ia_1-ia_ss)/length(ia_1);
-                    Ib_a1=fft(ib_1-ib_ss)/length(ib_1);
-                    Ic_a1=fft(ic_1-ic_ss)/length(ic_1);
+                    Va_a1=fft(va_1-va_ss1)/length(va_1);
+                    Vb_a1=fft(vb_1-vb_ss1)/length(vb_1);
+                    Vc_a1=fft(vc_1-vc_ss1)/length(vc_1);
+                    Ia_a1=fft(ia_1-ia_ss1)/length(ia_1);
+                    Ib_a1=fft(ib_1-ib_ss1)/length(ib_1);
+                    Ic_a1=fft(ic_1-ic_ss1)/length(ic_1);
                     %System 2
                     va_2=out.Vabc2(td1:td2,1);
                     vb_2=out.Vabc2(td1:td2,2);
@@ -525,12 +590,12 @@ switch scanner_selector
                     ia_2=out.Iabc2(td1:td2,1);
                     ib_2=out.Iabc2(td1:td2,2);
                     ic_2=out.Iabc2(td1:td2,3);
-                    Va_a2=fft(va_2-va_ss)/length(va_2);
-                    Vb_a2=fft(vb_2-vb_ss)/length(vb_2);
-                    Vc_a2=fft(vc_2-vc_ss)/length(vc_2);
-                    Ia_a2=fft(ia_2-ia_ss)/length(ia_2);
-                    Ib_a2=fft(ib_2-ib_ss)/length(ib_2);
-                    Ic_a2=fft(ic_2-ic_ss)/length(ic_2);
+                    Va_a2=fft(va_2-va_ss2)/length(va_2);
+                    Vb_a2=fft(vb_2-vb_ss2)/length(vb_2);
+                    Vc_a2=fft(vc_2-vc_ss2)/length(vc_2);
+                    Ia_a2=fft(ia_2-ia_ss2)/length(ia_2);
+                    Ib_a2=fft(ib_2-ib_ss2)/length(ib_2);
+                    Ic_a2=fft(ic_2-ic_ss2)/length(ic_2);
                     % b-injection
                     dist_value_a=0;
                     dist_value_b=Idist_value;
@@ -543,12 +608,12 @@ switch scanner_selector
                     ia_1=out.Iabc1(td1:td2,1);
                     ib_1=out.Iabc1(td1:td2,2);
                     ic_1=out.Iabc1(td1:td2,3);
-                    Va_b1=fft(va_1-va_ss)/length(va_1);
-                    Vb_b1=fft(vb_1-vb_ss)/length(vb_1);
-                    Vc_b1=fft(vc_1-vc_ss)/length(vc_1);
-                    Ia_b1=fft(ia_1-ia_ss)/length(ia_1);
-                    Ib_b1=fft(ib_1-ib_ss)/length(ib_1);
-                    Ic_b1=fft(ic_1-ic_ss)/length(ic_1);
+                    Va_b1=fft(va_1-va_ss1)/length(va_1);
+                    Vb_b1=fft(vb_1-vb_ss1)/length(vb_1);
+                    Vc_b1=fft(vc_1-vc_ss1)/length(vc_1);
+                    Ia_b1=fft(ia_1-ia_ss1)/length(ia_1);
+                    Ib_b1=fft(ib_1-ib_ss1)/length(ib_1);
+                    Ic_b1=fft(ic_1-ic_ss1)/length(ic_1);
                     % System 2
                     va_2=out.Vabc2(td1:td2,1);
                     vb_2=out.Vabc2(td1:td2,2);
@@ -556,12 +621,12 @@ switch scanner_selector
                     ia_2=out.Iabc2(td1:td2,1);
                     ib_2=out.Iabc2(td1:td2,2);
                     ic_2=out.Iabc2(td1:td2,3);
-                    Va_b2=fft(va_2-va_ss)/length(va_2);
-                    Vb_b2=fft(vb_2-vb_ss)/length(vb_2);
-                    Vc_b2=fft(vc_2-vc_ss)/length(vc_2);
-                    Ia_b2=fft(ia_2-ia_ss)/length(ia_2);
-                    Ib_b2=fft(ib_2-ib_ss)/length(ib_2);
-                    Ic_b2=fft(ic_2-ic_ss)/length(ic_2);
+                    Va_b2=fft(va_2-va_ss2)/length(va_2);
+                    Vb_b2=fft(vb_2-vb_ss2)/length(vb_2);
+                    Vc_b2=fft(vc_2-vc_ss2)/length(vc_2);
+                    Ia_b2=fft(ia_2-ia_ss2)/length(ia_2);
+                    Ib_b2=fft(ib_2-ib_ss2)/length(ib_2);
+                    Ic_b2=fft(ic_2-ic_ss2)/length(ic_2);
                     % c-injection
                     dist_value_a=0;
                     dist_value_b=0;
@@ -574,12 +639,12 @@ switch scanner_selector
                     ia_1=out.Iabc1(td1:td2,1);
                     ib_1=out.Iabc1(td1:td2,2);
                     ic_1=out.Iabc1(td1:td2,3);
-                    Va_c1=fft(va_1-va_ss)/length(va_1);
-                    Vb_c1=fft(vb_1-vb_ss)/length(vb_1);
-                    Vc_c1=fft(vc_1-vc_ss)/length(vc_1);
-                    Ia_c1=fft(ia_1-ia_ss)/length(ia_1);
-                    Ib_c1=fft(ib_1-ib_ss)/length(ib_1);
-                    Ic_c1=fft(ic_1-ic_ss)/length(ic_1);
+                    Va_c1=fft(va_1-va_ss1)/length(va_1);
+                    Vb_c1=fft(vb_1-vb_ss1)/length(vb_1);
+                    Vc_c1=fft(vc_1-vc_ss1)/length(vc_1);
+                    Ia_c1=fft(ia_1-ia_ss1)/length(ia_1);
+                    Ib_c1=fft(ib_1-ib_ss1)/length(ib_1);
+                    Ic_c1=fft(ic_1-ic_ss1)/length(ic_1);
                     % System 2
                     va_2=out.Vabc2(td1:td2,1);
                     vb_2=out.Vabc2(td1:td2,2);
@@ -587,12 +652,12 @@ switch scanner_selector
                     ia_2=out.Iabc2(td1:td2,1);
                     ib_2=out.Iabc2(td1:td2,2);
                     ic_2=out.Iabc2(td1:td2,3);
-                    Va_c2=fft(va_2-va_ss)/length(va_2);
-                    Vb_c2=fft(vb_2-vb_ss)/length(vb_2);
-                    Vc_c2=fft(vc_2-vc_ss)/length(vc_2);
-                    Ia_c2=fft(ia_2-ia_ss)/length(ia_2);
-                    Ib_c2=fft(ib_2-ib_ss)/length(ib_2);
-                    Ic_c2=fft(ic_2-ic_ss)/length(ic_2);
+                    Va_c2=fft(va_2-va_ss2)/length(va_2);
+                    Vb_c2=fft(vb_2-vb_ss2)/length(vb_2);
+                    Vc_c2=fft(vc_2-vc_ss2)/length(vc_2);
+                    Ia_c2=fft(ia_2-ia_ss2)/length(ia_2);
+                    Ib_c2=fft(ib_2-ib_ss2)/length(ib_2);
+                    Ic_c2=fft(ic_2-ic_ss2)/length(ic_2);
                     wd=round(fd/fs)+1;
                     % System 1
                     Vabc1=[Va_a1(wd) Va_b1(wd) Va_c1(wd)
@@ -602,7 +667,7 @@ switch scanner_selector
                            Ib_a1(wd) Ib_b1(wd) Ib_c1(wd)
                            Ic_a1(wd) Ic_b1(wd) Ic_c1(wd)];
                     Z_abc1(:,:,n)=Vabc1*inv(Iabc1);
-                    % System 1
+                    % System 2
                     Vabc2=[Va_a2(wd) Va_b2(wd) Va_c2(wd)
                            Vb_a2(wd) Vb_b2(wd) Vb_c2(wd)
                            Vc_a2(wd) Vc_b2(wd) Vc_c2(wd)];
@@ -628,12 +693,12 @@ switch scanner_selector
                 ia_1=out.Iabc1(td1:td2,1);
                 ib_1=out.Iabc1(td1:td2,2);
                 ic_1=out.Iabc1(td1:td2,3);
-                Va_a1=fft(va_1-va_ss)/length(va_1);
-                Vb_a1=fft(vb_1-vb_ss)/length(vb_1);
-                Vc_a1=fft(vc_1-vc_ss)/length(vc_1);
-                Ia_a1=fft(ia_1-ia_ss)/length(ia_1);
-                Ib_a1=fft(ib_1-ib_ss)/length(ib_1);
-                Ic_a1=fft(ic_1-ic_ss)/length(ic_1);
+                Va_a1=fft(va_1-va_ss1)/length(va_1);
+                Vb_a1=fft(vb_1-vb_ss1)/length(vb_1);
+                Vc_a1=fft(vc_1-vc_ss1)/length(vc_1);
+                Ia_a1=fft(ia_1-ia_ss1)/length(ia_1);
+                Ib_a1=fft(ib_1-ib_ss1)/length(ib_1);
+                Ic_a1=fft(ic_1-ic_ss1)/length(ic_1);
                 %System 2
                 va_2=out.Vabc2(td1:td2,1);
                 vb_2=out.Vabc2(td1:td2,2);
@@ -641,12 +706,12 @@ switch scanner_selector
                 ia_2=out.Iabc2(td1:td2,1);
                 ib_2=out.Iabc2(td1:td2,2);
                 ic_2=out.Iabc2(td1:td2,3);
-                Va_a2=fft(va_2-va_ss)/length(va_2);
-                Vb_a2=fft(vb_2-vb_ss)/length(vb_2);
-                Vc_a2=fft(vc_2-vc_ss)/length(vc_2);
-                Ia_a2=fft(ia_2-ia_ss)/length(ia_2);
-                Ib_a2=fft(ib_2-ib_ss)/length(ib_2);
-                Ic_a2=fft(ic_2-ic_ss)/length(ic_2);
+                Va_a2=fft(va_2-va_ss2)/length(va_2);
+                Vb_a2=fft(vb_2-vb_ss2)/length(vb_2);
+                Vc_a2=fft(vc_2-vc_ss2)/length(vc_2);
+                Ia_a2=fft(ia_2-ia_ss2)/length(ia_2);
+                Ib_a2=fft(ib_2-ib_ss2)/length(ib_2);
+                Ic_a2=fft(ic_2-ic_ss2)/length(ic_2);
                 % b-injection
                 dist_value_b=Isignal_dist2;
                 dist_value_a=[Isignal_dist2(:,1),zeros(samples_window,1)];
@@ -659,12 +724,12 @@ switch scanner_selector
                 ia_1=out.Iabc1(td1:td2,1);
                 ib_1=out.Iabc1(td1:td2,2);
                 ic_1=out.Iabc1(td1:td2,3);
-                Va_b1=fft(va_1-va_ss)/length(va_1);
-                Vb_b1=fft(vb_1-vb_ss)/length(vb_1);
-                Vc_b1=fft(vc_1-vc_ss)/length(vc_1);
-                Ia_b1=fft(ia_1-ia_ss)/length(ia_1);
-                Ib_b1=fft(ib_1-ib_ss)/length(ib_1);
-                Ic_b1=fft(ic_1-ic_ss)/length(ic_1);
+                Va_b1=fft(va_1-va_ss1)/length(va_1);
+                Vb_b1=fft(vb_1-vb_ss1)/length(vb_1);
+                Vc_b1=fft(vc_1-vc_ss1)/length(vc_1);
+                Ia_b1=fft(ia_1-ia_ss1)/length(ia_1);
+                Ib_b1=fft(ib_1-ib_ss1)/length(ib_1);
+                Ic_b1=fft(ic_1-ic_ss1)/length(ic_1);
                 % System 2
                 va_2=out.Vabc2(td1:td2,1);
                 vb_2=out.Vabc2(td1:td2,2);
@@ -672,12 +737,12 @@ switch scanner_selector
                 ia_2=out.Iabc2(td1:td2,1);
                 ib_2=out.Iabc2(td1:td2,2);
                 ic_2=out.Iabc2(td1:td2,3);
-                Va_b2=fft(va_2-va_ss)/length(va_2);
-                Vb_b2=fft(vb_2-vb_ss)/length(vb_2);
-                Vc_b2=fft(vc_2-vc_ss)/length(vc_2);
-                Ia_b2=fft(ia_2-ia_ss)/length(ia_2);
-                Ib_b2=fft(ib_2-ib_ss)/length(ib_2);
-                Ic_b2=fft(ic_2-ic_ss)/length(ic_2);
+                Va_b2=fft(va_2-va_ss2)/length(va_2);
+                Vb_b2=fft(vb_2-vb_ss2)/length(vb_2);
+                Vc_b2=fft(vc_2-vc_ss2)/length(vc_2);
+                Ia_b2=fft(ia_2-ia_ss2)/length(ia_2);
+                Ib_b2=fft(ib_2-ib_ss2)/length(ib_2);
+                Ic_b2=fft(ic_2-ic_ss2)/length(ic_2);
                 % c-injection
                 dist_value_c=Isignal_dist3;
                 dist_value_a=[Isignal_dist3(:,1),zeros(samples_window,1)];
@@ -690,12 +755,12 @@ switch scanner_selector
                 ia_1=out.Iabc1(td1:td2,1);
                 ib_1=out.Iabc1(td1:td2,2);
                 ic_1=out.Iabc1(td1:td2,3);
-                Va_c1=fft(va_1-va_ss)/length(va_1);
-                Vb_c1=fft(vb_1-vb_ss)/length(vb_1);
-                Vc_c1=fft(vc_1-vc_ss)/length(vc_1);
-                Ia_c1=fft(ia_1-ia_ss)/length(ia_1);
-                Ib_c1=fft(ib_1-ib_ss)/length(ib_1);
-                Ic_c1=fft(ic_1-ic_ss)/length(ic_1);
+                Va_c1=fft(va_1-va_ss1)/length(va_1);
+                Vb_c1=fft(vb_1-vb_ss1)/length(vb_1);
+                Vc_c1=fft(vc_1-vc_ss1)/length(vc_1);
+                Ia_c1=fft(ia_1-ia_ss1)/length(ia_1);
+                Ib_c1=fft(ib_1-ib_ss1)/length(ib_1);
+                Ic_c1=fft(ic_1-ic_ss1)/length(ic_1);
                 % System 2
                 va_2=out.Vabc2(td1:td2,1);
                 vb_2=out.Vabc2(td1:td2,2);
@@ -703,12 +768,12 @@ switch scanner_selector
                 ia_2=out.Iabc2(td1:td2,1);
                 ib_2=out.Iabc2(td1:td2,2);
                 ic_2=out.Iabc2(td1:td2,3);
-                Va_c2=fft(va_2-va_ss)/length(va_2);
-                Vb_c2=fft(vb_2-vb_ss)/length(vb_2);
-                Vc_c2=fft(vc_2-vc_ss)/length(vc_2);
-                Ia_c2=fft(ia_2-ia_ss)/length(ia_2);
-                Ib_c2=fft(ib_2-ib_ss)/length(ib_2);
-                Ic_c2=fft(ic_2-ic_ss)/length(ic_2);
+                Va_c2=fft(va_2-va_ss2)/length(va_2);
+                Vb_c2=fft(vb_2-vb_ss2)/length(vb_2);
+                Vc_c2=fft(vc_2-vc_ss2)/length(vc_2);
+                Ia_c2=fft(ia_2-ia_ss2)/length(ia_2);
+                Ib_c2=fft(ib_2-ib_ss2)/length(ib_2);
+                Ic_c2=fft(ic_2-ic_ss2)/length(ic_2);
             for n=1:length(Ic_c1)
                 % System 1
                 Vabc1=[Va_a1(n) Va_b1(n) Va_c1(n)
@@ -727,10 +792,12 @@ switch scanner_selector
                        Ic_a2(n) Ic_b2(n) Ic_c2(n)];
                 Z_abc2(:,:,n)=Vabc2*inv(Iabc2);
             end
-            fd0=(1:samples_window)*fs;
-            % Za=squeeze(Z_abc1(1,1,:));
-            % Zb=squeeze(Z_abc1(2,2,:));
-            % Zc=squeeze(Z_abc1(3,3,:));
+            % Frequency limits
+            fvec=(1:samples_window)*fs;
+            f_lim=find((fvec)>=fd0(end),1);
+            Z_abc1=Z_abc1(:,:,1:f_lim);
+            Z_abc2=Z_abc2(:,:,1:f_lim);
+            fd0=fvec(1:f_lim);
             end
         end
         switch linear
@@ -775,9 +842,29 @@ switch scanner_selector
                 if signal_type==1
                     set_param(multi_tone_V_qd0, 'Commented', 'on');
                     set_param(single_tone_V_qd0, 'Commented', 'off');
+                    dist_value_q=0;
+                    dist_value_d=0;
                 else
                     set_param(multi_tone_V_qd0, 'Commented', 'off');
                     set_param(single_tone_V_qd0, 'Commented', 'on');
+                    dist_value_q=zeros(samples_window,2);
+                    dist_value_d=zeros(samples_window,2);
+                end
+                if ss_cal~=1
+                out=sim(program);
+                td1=find((out.tout)>=t_w1,1); % t1 time window
+                td2=find((out.tout)>=t_w2,1); % t2 time window
+                % System 1
+                vq_ss1=out.Vqd1(td1:td2,1);
+                vd_ss1=out.Vqd1(td1:td2,2);
+                iq_ss1=out.Iqd1(td1:td2,1);
+                id_ss1=out.Iqd1(td1:td2,2);
+                % System 2
+                vq_ss2=out.Vqd2(td1:td2,1);
+                vd_ss2=out.Vqd2(td1:td2,2);
+                iq_ss2=out.Iqd2(td1:td2,1);
+                id_ss2=out.Iqd2(td1:td2,2);
+                dist_time=dist_time_f;
                 end
                 if signal_type==1
                             for n=1:length(fd0)
@@ -791,16 +878,16 @@ switch scanner_selector
                                 vq_1=out.Vqd1(td1:td2,1);
                                 iq_1=out.Iqd1(td1:td2,1);
                                 id_1=out.Iqd1(td1:td2,2);
-                                Vq_1=fft(vq_1-vq_ss)/length(vq_1);
-                                Iq_1=fft(iq_1-iq_ss)/length(iq_1);
-                                Id_1=fft(id_1-id_ss)/length(id_1);
+                                Vq_1=fft(vq_1-vq_ss1)/length(vq_1);
+                                Iq_1=fft(iq_1-iq_ss1)/length(iq_1);
+                                Id_1=fft(id_1-id_ss1)/length(id_1);
                                 % System 2
                                 vq_2=out.Vqd2(td1:td2,1);
                                 iq_2=out.Iqd2(td1:td2,1);
                                 id_2=out.Iqd2(td1:td2,2);
-                                Vq_2=fft(vq_2-vq_ss)/length(vq_2);
-                                Iq_2=fft(iq_2-iq_ss)/length(iq_2);
-                                Id_2=fft(id_2-id_ss)/length(id_2);
+                                Vq_2=fft(vq_2-vq_ss2)/length(vq_2);
+                                Iq_2=fft(iq_2-iq_ss2)/length(iq_2);
+                                Id_2=fft(id_2-id_ss2)/length(id_2);
                                 wd=round(fd/fs)+1;
                                 % System 1
                                 Ydq1(:,n)=Id_1(wd)/Vq_1(wd);
@@ -817,16 +904,16 @@ switch scanner_selector
                                 vd_1=out.Vqd1(td1:td2,2);
                                 iq_1=out.Iqd1(td1:td2,1);
                                 id_1=out.Iqd1(td1:td2,2);
-                                Vd_1=fft(vd_1-vd_ss)/length(vd_1);
-                                Iq_1=fft(iq_1-iq_ss)/length(iq_1);
-                                Id_1=fft(id_1-id_ss)/length(id_1);
+                                Vd_1=fft(vd_1-vd_ss1)/length(vd_1);
+                                Iq_1=fft(iq_1-iq_ss1)/length(iq_1);
+                                Id_1=fft(id_1-id_ss1)/length(id_1);
                                 % System 2
                                 vd_2=out.Vqd2(td1:td2,2);
                                 iq_2=out.Iqd2(td1:td2,1);
                                 id_2=out.Iqd2(td1:td2,2);
-                                Vd_2=fft(vd_2-vd_ss)/length(vd_2);
-                                Iq_2=fft(iq_2-iq_ss)/length(iq_2);
-                                Id_2=fft(id_2-id_ss)/length(id_2);
+                                Vd_2=fft(vd_2-vd_ss2)/length(vd_2);
+                                Iq_2=fft(iq_2-iq_ss2)/length(iq_2);
+                                Id_2=fft(id_2-id_ss2)/length(id_2);
                                 % System 1
                                 Yqd1(:,n)=Iq_1(wd)/Vd_1(wd);
                                 Ydd1(:,n)=Id_1(wd)/Vd_1(wd);
@@ -844,16 +931,16 @@ switch scanner_selector
                     vq_1=out.Vqd1(td1:td2,1);
                     iq_1=out.Iqd1(td1:td2,1);
                     id_1=out.Iqd1(td1:td2,2);
-                    Vq_1=fft(vq_1-vq_ss)/length(vq_1);
-                    Iq_1=fft(iq_1-iq_ss)/length(iq_1);
-                    Id_1=fft(id_1-id_ss)/length(id_1);
+                    Vq_1=fft(vq_1-vq_ss1)/length(vq_1);
+                    Iq_1=fft(iq_1-iq_ss1)/length(iq_1);
+                    Id_1=fft(id_1-id_ss1)/length(id_1);
                     % System 2
                     vq_2=out.Vqd2(td1:td2,1);
                     iq_2=out.Iqd2(td1:td2,1);
                     id_2=out.Iqd2(td1:td2,2);
-                    Vq_2=fft(vq_2-vq_ss)/length(vq_2);
-                    Iq_2=fft(iq_2-iq_ss)/length(iq_2);
-                    Id_2=fft(id_2-id_ss)/length(id_2);
+                    Vq_2=fft(vq_2-vq_ss2)/length(vq_2);
+                    Iq_2=fft(iq_2-iq_ss2)/length(iq_2);
+                    Id_2=fft(id_2-id_ss2)/length(id_2);
                     % System 1
                     Yqq1=Iq_1./Vq_1;
                     Ydq1=Id_1./Vq_1;
@@ -869,23 +956,36 @@ switch scanner_selector
                     vd_1=out.Vqd1(td1:td2,2);
                     iq_1=out.Iqd1(td1:td2,1);
                     id_1=out.Iqd1(td1:td2,2);
-                    Vd_1=fft(vd_1-vd_ss)/length(vd_1);
-                    Iq_1=fft(iq_1-iq_ss)/length(iq_1);
-                    Id_1=fft(id_1-id_ss)/length(id_1);
+                    Vd_1=fft(vd_1-vd_ss1)/length(vd_1);
+                    Iq_1=fft(iq_1-iq_ss1)/length(iq_1);
+                    Id_1=fft(id_1-id_ss1)/length(id_1);
                     % System 2
                     vd_2=out.Vqd2(td1:td2,2);
                     iq_2=out.Iqd2(td1:td2,1);
                     id_2=out.Iqd2(td1:td2,2);
-                    Vd_2=fft(vd_2-vd_ss)/length(vd_2);
-                    Iq_2=fft(iq_2-iq_ss)/length(iq_2);
-                    Id_2=fft(id_2-id_ss)/length(id_2);
+                    Vd_2=fft(vd_2-vd_ss2)/length(vd_2);
+                    Iq_2=fft(iq_2-iq_ss2)/length(iq_2);
+                    Id_2=fft(id_2-id_ss2)/length(id_2);
                     % System 1
                     Ydd1=Id_1./Vd_1;
                     Yqd1=Iq_1./Vd_1;
                     % System 2
                     Ydd2=Id_2./Vd_2;
                     Yqd2=Iq_2./Vd_2;
-                    fd0=(1:samples_window)*fs;
+                    % Frequency limits
+                    fvec=(1:samples_window)*fs;
+                    f_lim=find((fvec)>=fd0(end),1);
+                    % System 1
+                    Yqq1=Yqq1(1:f_lim);
+                    Yqd1=Yqd1(1:f_lim);
+                    Ydq1=Ydq1(1:f_lim);
+                    Ydd1=Ydd1(1:f_lim);
+                    % System 2
+                    Yqq2=Yqq2(1:f_lim);
+                    Yqd2=Yqd2(1:f_lim);
+                    Ydq2=Ydq2(1:f_lim);
+                    Ydd2=Ydd2(1:f_lim);
+                    fd0=fvec(1:f_lim);
                 end
         else
             set_param(voltage_type, 'Commented', 'on');
@@ -893,9 +993,29 @@ switch scanner_selector
             if signal_type==1
                 set_param(multi_tone_I_qd0, 'Commented', 'on');
                 set_param(single_tone_I_qd0, 'Commented', 'off');
+                dist_value_q=0;
+                dist_value_d=0;
             else
                 set_param(multi_tone_I_qd0, 'Commented', 'off');
                 set_param(single_tone_I_qd0, 'Commented', 'on');
+                dist_value_q=zeros(samples_window,2);
+                dist_value_d=zeros(samples_window,2);
+            end
+            if ss_cal~=1
+                out=sim(program);
+                td1=find((out.tout)>=t_w1,1); % t1 time window
+                td2=find((out.tout)>=t_w2,1); % t2 time window
+                % System 1
+                vq_ss1=out.Vqd1(td1:td2,1);
+                vd_ss1=out.Vqd1(td1:td2,2);
+                iq_ss1=out.Iqd1(td1:td2,1);
+                id_ss1=out.Iqd1(td1:td2,2);
+                % System 2
+                vq_ss2=out.Vqd2(td1:td2,1);
+                vd_ss2=out.Vqd2(td1:td2,2);
+                iq_ss2=out.Iqd2(td1:td2,1);
+                id_ss2=out.Iqd2(td1:td2,2);
+                dist_time=dist_time_f;
             end
             if signal_type==1
                 for n=1:length(fd0)
@@ -909,19 +1029,19 @@ switch scanner_selector
                     vd_1=out.Vqd1(td1:td2,2);
                     iq_1=out.Iqd1(td1:td2,1);
                     id_1=out.Iqd1(td1:td2,2);
-                    Vq_q1=fft(vq_1-vq_ss)/length(vq_1);
-                    Vd_q1=fft(vd_1-vd_ss)/length(vd_1);
-                    Iq_q1=fft(iq_1-iq_ss)/length(iq_1);
-                    Id_q1=fft(id_1-id_ss)/length(id_1);
+                    Vq_q1=fft(vq_1-vq_ss1)/length(vq_1);
+                    Vd_q1=fft(vd_1-vd_ss1)/length(vd_1);
+                    Iq_q1=fft(iq_1-iq_ss1)/length(iq_1);
+                    Id_q1=fft(id_1-id_ss1)/length(id_1);
                     % System 2
                     vq_2=out.Vqd2(td1:td2,1);
                     vd_2=out.Vqd2(td1:td2,2);
                     iq_2=out.Iqd2(td1:td2,1);
                     id_2=out.Iqd2(td1:td2,2);
-                    Vq_q2=fft(vq_2-vq_ss)/length(vq_2);
-                    Vd_q2=fft(vd_2-vd_ss)/length(vd_2);
-                    Iq_q2=fft(iq_2-iq_ss)/length(iq_2);
-                    Id_q2=fft(id_2-id_ss)/length(id_2);
+                    Vq_q2=fft(vq_2-vq_ss2)/length(vq_2);
+                    Vd_q2=fft(vd_2-vd_ss2)/length(vd_2);
+                    Iq_q2=fft(iq_2-iq_ss2)/length(iq_2);
+                    Id_q2=fft(id_2-id_ss2)/length(id_2);
                     % d-injection
                     dist_value_d=Idist_value;
                     dist_value_q=0;
@@ -931,19 +1051,19 @@ switch scanner_selector
                     vd_1=out.Vqd1(td1:td2,2);
                     iq_1=out.Iqd1(td1:td2,1);
                     id_1=out.Iqd1(td1:td2,2);
-                    Vq_d1=fft(vq_1-vq_ss)/length(vq_1);
-                    Vd_d1=fft(vd_1-vd_ss)/length(vd_1);
-                    Iq_d1=fft(iq_1-iq_ss)/length(iq_1);
-                    Id_d1=fft(id_1-id_ss)/length(id_1);
+                    Vq_d1=fft(vq_1-vq_ss1)/length(vq_1);
+                    Vd_d1=fft(vd_1-vd_ss1)/length(vd_1);
+                    Iq_d1=fft(iq_1-iq_ss1)/length(iq_1);
+                    Id_d1=fft(id_1-id_ss1)/length(id_1);
                     % System 2
                     vq_2=out.Vqd2(td1:td2,1);
                     vd_2=out.Vqd2(td1:td2,2);
                     iq_2=out.Iqd2(td1:td2,1);
                     id_2=out.Iqd2(td1:td2,2);
-                    Vq_d2=fft(vq_2-vq_ss)/length(vq_2);
-                    Vd_d2=fft(vd_2-vd_ss)/length(vd_2);
-                    Iq_d2=fft(iq_2-iq_ss)/length(iq_2);
-                    Id_d2=fft(id_2-id_ss)/length(id_2);
+                    Vq_d2=fft(vq_2-vq_ss2)/length(vq_2);
+                    Vd_d2=fft(vd_2-vd_ss2)/length(vd_2);
+                    Iq_d2=fft(iq_2-iq_ss2)/length(iq_2);
+                    Id_d2=fft(id_2-id_ss2)/length(id_2);
                     % qd and dd Admitance calculation in FD
                     wd=round(fd/fs)+1;
                     % System 1
@@ -977,19 +1097,19 @@ switch scanner_selector
                 vd_1=out.Vqd1(td1:td2,2);
                 iq_1=out.Iqd1(td1:td2,1);
                 id_1=out.Iqd1(td1:td2,2);
-                Vq_q1=fft(vq_1-vq_ss)/length(vq_1);
-                Vd_q1=fft(vd_1-vd_ss)/length(vd_1);
-                Iq_q1=fft(iq_1-iq_ss)/length(iq_1);
-                Id_q1=fft(id_1-id_ss)/length(id_1);
+                Vq_q1=fft(vq_1-vq_ss1)/length(vq_1);
+                Vd_q1=fft(vd_1-vd_ss1)/length(vd_1);
+                Iq_q1=fft(iq_1-iq_ss1)/length(iq_1);
+                Id_q1=fft(id_1-id_ss1)/length(id_1);
                 % System 2
                 vq_2=out.Vqd2(td1:td2,1);
                 vd_2=out.Vqd2(td1:td2,2);
                 iq_2=out.Iqd2(td1:td2,1);
                 id_2=out.Iqd2(td1:td2,2);
-                Vq_q2=fft(vq_2-vq_ss)/length(vq_2);
-                Vd_q2=fft(vd_2-vd_ss)/length(vd_2);
-                Iq_q2=fft(iq_2-iq_ss)/length(iq_2);
-                Id_q2=fft(id_2-id_ss)/length(id_2);
+                Vq_q2=fft(vq_2-vq_ss2)/length(vq_2);
+                Vd_q2=fft(vd_2-vd_ss2)/length(vd_2);
+                Iq_q2=fft(iq_2-iq_ss2)/length(iq_2);
+                Id_q2=fft(id_2-id_ss2)/length(id_2);
                 % d-injection
                 dist_value_d=Isignal_dist1;
                 dist_value_q=[Isignal_dist1(:,1),zeros(samples_window,1)];
@@ -999,19 +1119,19 @@ switch scanner_selector
                 vd_1=out.Vqd1(td1:td2,2);
                 iq_1=out.Iqd1(td1:td2,1);
                 id_1=out.Iqd1(td1:td2,2);
-                Vq_d1=fft(vq_1-vq_ss)/length(vq_1);
-                Vd_d1=fft(vd_1-vd_ss)/length(vd_1);
-                Iq_d1=fft(iq_1-iq_ss)/length(iq_1);
-                Id_d1=fft(id_1-id_ss)/length(id_1);
+                Vq_d1=fft(vq_1-vq_ss1)/length(vq_1);
+                Vd_d1=fft(vd_1-vd_ss1)/length(vd_1);
+                Iq_d1=fft(iq_1-iq_ss1)/length(iq_1);
+                Id_d1=fft(id_1-id_ss1)/length(id_1);
                 % System 2
                 vq_2=out.Vqd2(td1:td2,1);
                 vd_2=out.Vqd2(td1:td2,2);
                 iq_2=out.Iqd2(td1:td2,1);
                 id_2=out.Iqd2(td1:td2,2);
-                Vq_d2=fft(vq_2-vq_ss)/length(vq_2);
-                Vd_d2=fft(vd_2-vd_ss)/length(vd_2);
-                Iq_d2=fft(iq_2-iq_ss)/length(iq_2);
-                Id_d2=fft(id_2-id_ss)/length(id_2);
+                Vq_d2=fft(vq_2-vq_ss2)/length(vq_2);
+                Vd_d2=fft(vd_2-vd_ss2)/length(vd_2);
+                Iq_d2=fft(iq_2-iq_ss2)/length(iq_2);
+                Id_d2=fft(id_2-id_ss2)/length(id_2);
             for n=1:length(Id_d1)
                 % System 1
                 Vqd1=[Vq_q1(n) Vq_d1(n)
@@ -1034,7 +1154,20 @@ switch scanner_selector
                 Zdq2(:,n)=Z_qd2(2,1);
                 Zdd2(:,n)=Z_qd2(2,2);
             end
-            fd0=(1:samples_window)*fs;
+            % Frequency limits
+            fvec=(1:samples_window)*fs;
+            f_lim=find((fvec)>=fd0(end),1);
+            % System 1
+            Zqq1=Zqq1(1:f_lim);
+            Zqd1=Zqd1(1:f_lim);
+            Zdq1=Zdq1(1:f_lim);
+            Zdd1=Zdd1(1:f_lim);
+            % System 2
+            Zqq2=Zqq2(1:f_lim);
+            Zqd2=Zqd2(1:f_lim);
+            Zdq2=Zdq2(1:f_lim);
+            Zdd2=Zdd2(1:f_lim);
+            fd0=fvec(1:f_lim);
             end
         end
             switch linear
@@ -1097,6 +1230,26 @@ switch scanner_selector
                 dist_value_p=zeros(samples_window,2);
                 dist_value_n=zeros(samples_window,2);
             end
+            if ss_cal~=1
+                out=sim(program);
+                td1=find((out.tout)>=t_w1,1); % t1 time window
+                td2=find((out.tout)>=t_w2,1); % t2 time window
+                % System 1
+                v0_ss1=out.V0pn1(td1:td2,1);
+                vp_ss1=out.V0pn1(td1:td2,2);
+                vn_ss1=out.V0pn1(td1:td2,3);
+                i0_ss1=out.I0pn1(td1:td2,1);
+                ip_ss1=out.I0pn1(td1:td2,2);
+                in_ss1=out.I0pn1(td1:td2,3);
+                % System 2
+                v0_ss2=out.V0pn2(td1:td2,1);
+                vp_ss2=out.V0pn2(td1:td2,2);
+                vn_ss2=out.V0pn2(td1:td2,3);
+                i0_ss2=out.I0pn2(td1:td2,1);
+                ip_ss2=out.I0pn2(td1:td2,2);
+                in_ss2=out.I0pn2(td1:td2,3);
+                dist_time=dist_time_f;
+            end
             if signal_type==1
                 for n=1:length(fd0)
                     fd=fd0(n);
@@ -1113,12 +1266,12 @@ switch scanner_selector
                     i0_1=out.I0pn1(td1:td2,1);
                     ip_1=out.I0pn1(td1:td2,2);
                     in_1=out.I0pn1(td1:td2,3);
-                    V0_1=fft(v0_1-v0_ss)/length(v0_1);
-                    Vp_1=fft(vp_1-vp_ss)/length(vp_1);
-                    Vn_1=fft(vn_1-vn_ss)/length(vn_1);
-                    I0_1=fft(i0_1-i0_ss)/length(i0_1);
-                    Ip_1=fft(ip_1-ip_ss)/length(ip_1);
-                    In_1=fft(in_1-in_ss)/length(in_1);
+                    V0_1=fft(v0_1-v0_ss1)/length(v0_1);
+                    Vp_1=fft(vp_1-vp_ss1)/length(vp_1);
+                    Vn_1=fft(vn_1-vn_ss1)/length(vn_1);
+                    I0_1=fft(i0_1-i0_ss1)/length(i0_1);
+                    Ip_1=fft(ip_1-ip_ss1)/length(ip_1);
+                    In_1=fft(in_1-in_ss1)/length(in_1);
                     % System 2
                     v0_2=out.V0pn2(td1:td2,1);
                     vp_2=out.V0pn2(td1:td2,2);
@@ -1126,12 +1279,12 @@ switch scanner_selector
                     i0_2=out.I0pn2(td1:td2,1);
                     ip_2=out.I0pn2(td1:td2,2);
                     in_2=out.I0pn2(td1:td2,3);
-                    V0_2=fft(v0_2-v0_ss)/length(v0_2);
-                    Vp_2=fft(vp_2-vp_ss)/length(vp_2);
-                    Vn_2=fft(vn_2-vn_ss)/length(vn_2);
-                    I0_2=fft(i0_2-i0_ss)/length(i0_2);
-                    Ip_2=fft(ip_2-ip_ss)/length(ip_2);
-                    In_2=fft(in_2-in_ss)/length(in_2);
+                    V0_2=fft(v0_2-v0_ss2)/length(v0_2);
+                    Vp_2=fft(vp_2-vp_ss2)/length(vp_2);
+                    Vn_2=fft(vn_2-vn_ss2)/length(vn_2);
+                    I0_2=fft(i0_2-i0_ss2)/length(i0_2);
+                    Ip_2=fft(ip_2-ip_ss2)/length(ip_2);
+                    In_2=fft(in_2-in_ss2)/length(in_2);
                     wd=round(fd/fs)+1;
                     % System 1
                     Y_0p0_1=I0_1(wd)/Vp_1(wd);
@@ -1157,12 +1310,12 @@ switch scanner_selector
                     i0_1=out.I0pn1(td1:td2,1);
                     ip_1=out.I0pn1(td1:td2,2);
                     in_1=out.I0pn1(td1:td2,3);
-                    V0_1=fft(v0_1-v0_ss)/length(v0_1);
-                    Vp_1=fft(vp_1-vp_ss)/length(vp_1);
-                    Vn_1=fft(vn_1-vn_ss)/length(vn_1);
-                    I0_1=fft(i0_1-i0_ss)/length(i0_1);
-                    Ip_1=fft(ip_1-ip_ss)/length(ip_1);
-                    In_1=fft(in_1-in_ss)/length(in_1);
+                    V0_1=fft(v0_1-v0_ss1)/length(v0_1);
+                    Vp_1=fft(vp_1-vp_ss1)/length(vp_1);
+                    Vn_1=fft(vn_1-vn_ss1)/length(vn_1);
+                    I0_1=fft(i0_1-i0_ss1)/length(i0_1);
+                    Ip_1=fft(ip_1-ip_ss1)/length(ip_1);
+                    In_1=fft(in_1-in_ss1)/length(in_1);
                     % System 2
                     v0_2=out.V0pn2(td1:td2,1);
                     vp_2=out.V0pn2(td1:td2,2);
@@ -1170,12 +1323,12 @@ switch scanner_selector
                     i0_2=out.I0pn2(td1:td2,1);
                     ip_2=out.I0pn2(td1:td2,2);
                     in_2=out.I0pn2(td1:td2,3);
-                    V0_2=fft(v0_2-v0_ss)/length(v0_2);
-                    Vp_2=fft(vp_2-vp_ss)/length(vp_2);
-                    Vn_2=fft(vn_2-vn_ss)/length(vn_2);
-                    I0_2=fft(i0_2-i0_ss)/length(i0_2);
-                    Ip_2=fft(ip_2-ip_ss)/length(ip_2);
-                    In_2=fft(in_2-in_ss)/length(in_2);
+                    V0_2=fft(v0_2-v0_ss2)/length(v0_2);
+                    Vp_2=fft(vp_2-vp_ss2)/length(vp_2);
+                    Vn_2=fft(vn_2-vn_ss2)/length(vn_2);
+                    I0_2=fft(i0_2-i0_ss2)/length(i0_2);
+                    Ip_2=fft(ip_2-ip_ss2)/length(ip_2);
+                    In_2=fft(in_2-in_ss2)/length(in_2);
                     % System 1
                     Y_0n0_1=I0_1(wd)/Vn_1(wd);
                     Y_pn0_1=Ip_1(wd)/Vn_1(wd);
@@ -1200,12 +1353,12 @@ switch scanner_selector
                     i0_1=out.I0pn1(td1:td2,1);
                     ip_1=out.I0pn1(td1:td2,2);
                     in_1=out.I0pn1(td1:td2,3);
-                    V0_1=fft(v0_1-v0_ss)/length(v0_1);
-                    Vp_1=fft(vp_1-vp_ss)/length(vp_1);
-                    Vn_1=fft(vn_1-vn_ss)/length(vn_1);
-                    I0_1=fft(i0_1-i0_ss)/length(i0_1);
-                    Ip_1=fft(ip_1-ip_ss)/length(ip_1);
-                    In_1=fft(in_1-in_ss)/length(in_1);
+                    V0_1=fft(v0_1-v0_ss1)/length(v0_1);
+                    Vp_1=fft(vp_1-vp_ss1)/length(vp_1);
+                    Vn_1=fft(vn_1-vn_ss1)/length(vn_1);
+                    I0_1=fft(i0_1-i0_ss1)/length(i0_1);
+                    Ip_1=fft(ip_1-ip_ss1)/length(ip_1);
+                    In_1=fft(in_1-in_ss1)/length(in_1);
                     % System 2
                     v0_2=out.V0pn2(td1:td2,1);
                     vp_2=out.V0pn2(td1:td2,2);
@@ -1213,12 +1366,12 @@ switch scanner_selector
                     i0_2=out.I0pn2(td1:td2,1);
                     ip_2=out.I0pn2(td1:td2,2);
                     in_2=out.I0pn2(td1:td2,3);
-                    V0_2=fft(v0_2-v0_ss)/length(v0_2);
-                    Vp_2=fft(vp_2-vp_ss)/length(vp_2);
-                    Vn_2=fft(vn_2-vn_ss)/length(vn_2);
-                    I0_2=fft(i0_2-i0_ss)/length(i0_2);
-                    Ip_2=fft(ip_2-ip_ss)/length(ip_2);
-                    In_2=fft(in_2-in_ss)/length(in_2);
+                    V0_2=fft(v0_2-v0_ss2)/length(v0_2);
+                    Vp_2=fft(vp_2-vp_ss2)/length(vp_2);
+                    Vn_2=fft(vn_2-vn_ss2)/length(vn_2);
+                    I0_2=fft(i0_2-i0_ss2)/length(i0_2);
+                    Ip_2=fft(ip_2-ip_ss2)/length(ip_2);
+                    In_2=fft(in_2-in_ss2)/length(in_2);
                      % System 1
                     Y_000_1=I0_1(wd)/V0_1(wd);
                     Y_p00_1=Ip_1(wd)/V0_1(wd);
@@ -1249,12 +1402,12 @@ switch scanner_selector
                 i0_1=out.I0pn1(td1:td2,1);
                 ip_1=out.I0pn1(td1:td2,2);
                 in_1=out.I0pn1(td1:td2,3);
-                V0_1=fft(v0_1-v0_ss)/length(v0_1);
-                Vp_1=fft(vp_1-vp_ss)/length(vp_1);
-                Vn_1=fft(vn_1-vn_ss)/length(vn_1);
-                I0_1=fft(i0_1-i0_ss)/length(i0_1);
-                Ip_1=fft(ip_1-ip_ss)/length(ip_1);
-                In_1=fft(in_1-in_ss)/length(in_1);
+                V0_1=fft(v0_1-v0_ss1)/length(v0_1);
+                Vp_1=fft(vp_1-vp_ss1)/length(vp_1);
+                Vn_1=fft(vn_1-vn_ss1)/length(vn_1);
+                I0_1=fft(i0_1-i0_ss1)/length(i0_1);
+                Ip_1=fft(ip_1-ip_ss1)/length(ip_1);
+                In_1=fft(in_1-in_ss1)/length(in_1);
                 % System 2
                 v0_2=out.V0pn2(td1:td2,1);
                 vp_2=out.V0pn2(td1:td2,2);
@@ -1262,12 +1415,12 @@ switch scanner_selector
                 i0_2=out.I0pn2(td1:td2,1);
                 ip_2=out.I0pn2(td1:td2,2);
                 in_2=out.I0pn2(td1:td2,3);
-                V0_2=fft(v0_2-v0_ss)/length(v0_2);
-                Vp_2=fft(vp_2-vp_ss)/length(vp_2);
-                Vn_2=fft(vn_2-vn_ss)/length(vn_2);
-                I0_2=fft(i0_2-i0_ss)/length(i0_2);
-                Ip_2=fft(ip_2-ip_ss)/length(ip_2);
-                In_2=fft(in_2-in_ss)/length(in_2);
+                V0_2=fft(v0_2-v0_ss2)/length(v0_2);
+                Vp_2=fft(vp_2-vp_ss2)/length(vp_2);
+                Vn_2=fft(vn_2-vn_ss2)/length(vn_2);
+                I0_2=fft(i0_2-i0_ss2)/length(i0_2);
+                Ip_2=fft(ip_2-ip_ss2)/length(ip_2);
+                In_2=fft(in_2-in_ss2)/length(in_2);
                 % System 1
                 Y0p1=I0_1./Vp_1;
                 Ypp1=Ip_1./Vp_1;
@@ -1288,12 +1441,12 @@ switch scanner_selector
                 i0_1=out.I0pn1(td1:td2,1);
                 ip_1=out.I0pn1(td1:td2,2);
                 in_1=out.I0pn1(td1:td2,3);
-                V0_1=fft(v0_1-v0_ss)/length(v0_1);
-                Vp_1=fft(vp_1-vp_ss)/length(vp_1);
-                Vn_1=fft(vn_1-vn_ss)/length(vn_1);
-                I0_1=fft(i0_1-i0_ss)/length(i0_1);
-                Ip_1=fft(ip_1-ip_ss)/length(ip_1);
-                In_1=fft(in_1-in_ss)/length(in_1);
+                V0_1=fft(v0_1-v0_ss1)/length(v0_1);
+                Vp_1=fft(vp_1-vp_ss1)/length(vp_1);
+                Vn_1=fft(vn_1-vn_ss1)/length(vn_1);
+                I0_1=fft(i0_1-i0_ss1)/length(i0_1);
+                Ip_1=fft(ip_1-ip_ss1)/length(ip_1);
+                In_1=fft(in_1-in_ss1)/length(in_1);
                 % System 2
                 v0_2=out.V0pn2(td1:td2,1);
                 vp_2=out.V0pn2(td1:td2,2);
@@ -1301,12 +1454,12 @@ switch scanner_selector
                 i0_2=out.I0pn2(td1:td2,1);
                 ip_2=out.I0pn2(td1:td2,2);
                 in_2=out.I0pn2(td1:td2,3);
-                V0_2=fft(v0_2-v0_ss)/length(v0_2);
-                Vp_2=fft(vp_2-vp_ss)/length(vp_2);
-                Vn_2=fft(vn_2-vn_ss)/length(vn_2);
-                I0_2=fft(i0_2-i0_ss)/length(i0_2);
-                Ip_2=fft(ip_2-ip_ss)/length(ip_2);
-                In_2=fft(in_2-in_ss)/length(in_2);
+                V0_2=fft(v0_2-v0_ss2)/length(v0_2);
+                Vp_2=fft(vp_2-vp_ss2)/length(vp_2);
+                Vn_2=fft(vn_2-vn_ss2)/length(vn_2);
+                I0_2=fft(i0_2-i0_ss2)/length(i0_2);
+                Ip_2=fft(ip_2-ip_ss2)/length(ip_2);
+                In_2=fft(in_2-in_ss2)/length(in_2);
                 % System 1
                 Y0n1=I0_1./Vn_1;
                 Ypn1=Ip_1./Vn_1;
@@ -1327,12 +1480,12 @@ switch scanner_selector
                 i0_1=out.I0pn1(td1:td2,1);
                 ip_1=out.I0pn1(td1:td2,2);
                 in_1=out.I0pn1(td1:td2,3);
-                V0_1=fft(v0_1-v0_ss)/length(v0_1);
-                Vp_1=fft(vp_1-vp_ss)/length(vp_1);
-                Vn_1=fft(vn_1-vn_ss)/length(vn_1);
-                I0_1=fft(i0_1-i0_ss)/length(i0_1);
-                Ip_1=fft(ip_1-ip_ss)/length(ip_1);
-                In_1=fft(in_1-in_ss)/length(in_1);
+                V0_1=fft(v0_1-v0_ss1)/length(v0_1);
+                Vp_1=fft(vp_1-vp_ss1)/length(vp_1);
+                Vn_1=fft(vn_1-vn_ss1)/length(vn_1);
+                I0_1=fft(i0_1-i0_ss1)/length(i0_1);
+                Ip_1=fft(ip_1-ip_ss1)/length(ip_1);
+                In_1=fft(in_1-in_ss1)/length(in_1);
                 % System 2
                 v0_2=out.V0pn2(td1:td2,1);
                 vp_2=out.V0pn2(td1:td2,2);
@@ -1340,12 +1493,12 @@ switch scanner_selector
                 i0_2=out.I0pn2(td1:td2,1);
                 ip_2=out.I0pn2(td1:td2,2);
                 in_2=out.I0pn2(td1:td2,3);
-                V0_2=fft(v0_2-v0_ss)/length(v0_2);
-                Vp_2=fft(vp_2-vp_ss)/length(vp_2);
-                Vn_2=fft(vn_2-vn_ss)/length(vn_2);
-                I0_2=fft(i0_2-i0_ss)/length(i0_2);
-                Ip_2=fft(ip_2-ip_ss)/length(ip_2);
-                In_2=fft(in_2-in_ss)/length(in_2);
+                V0_2=fft(v0_2-v0_ss2)/length(v0_2);
+                Vp_2=fft(vp_2-vp_ss2)/length(vp_2);
+                Vn_2=fft(vn_2-vn_ss2)/length(vn_2);
+                I0_2=fft(i0_2-i0_ss2)/length(i0_2);
+                Ip_2=fft(ip_2-ip_ss2)/length(ip_2);
+                In_2=fft(in_2-in_ss2)/length(in_2);
                 % System 1
                 Y001=I0_1./V0_1;
                 Yp01=Ip_1./V0_1;
@@ -1362,7 +1515,20 @@ switch scanner_selector
                                    Yp02(n) Ypp2(n) Ypn2(n)
                                    Yn02(n) Ynp2(n) Ynn2(n)];
                 end
-                fd0=(1:samples_window)*fs;
+                % Frequency limits
+                fvec=(1:samples_window)*fs;
+                f_lim=find((fvec)>=fd0(end),1);
+                Y_0pn1=Y_0pn1(:,:,1:f_lim);
+                Y_0pn2=Y_0pn2(:,:,1:f_lim);
+                Ypp1=Ypp1(1:f_lim);
+                Ypn1=Ypn1(1:f_lim);
+                Ynp1=Ynp1(1:f_lim);
+                Ynn1=Ynn1(1:f_lim);
+                Ypp2=Ypp2(1:f_lim);
+                Ypn2=Ypn2(1:f_lim);
+                Ynp2=Ynp2(1:f_lim);
+                Ynn2=Ynn2(1:f_lim);
+                fd0=fvec(1:f_lim);
             end
         else
             set_param(voltage_type, 'Commented', 'on');
@@ -1380,6 +1546,26 @@ switch scanner_selector
                 dist_value_p=zeros(samples_window,2);
                 dist_value_n=zeros(samples_window,2);
             end
+            if ss_cal~=1
+                out=sim(program);
+                td1=find((out.tout)>=t_w1,1); % t1 time window
+                td2=find((out.tout)>=t_w2,1); % t2 time window
+                % System 1
+                v0_ss1=out.V0pn1(td1:td2,1);
+                vp_ss1=out.V0pn1(td1:td2,2);
+                vn_ss1=out.V0pn1(td1:td2,3);
+                i0_ss1=out.I0pn1(td1:td2,1);
+                ip_ss1=out.I0pn1(td1:td2,2);
+                in_ss1=out.I0pn1(td1:td2,3);
+                % System 2
+                v0_ss2=out.V0pn2(td1:td2,1);
+                vp_ss2=out.V0pn2(td1:td2,2);
+                vn_ss2=out.V0pn2(td1:td2,3);
+                i0_ss2=out.I0pn2(td1:td2,1);
+                ip_ss2=out.I0pn2(td1:td2,2);
+                in_ss2=out.I0pn2(td1:td2,3);
+                dist_time=dist_time_f;
+            end
             if signal_type==1
                 for n=1:length(fd0)
                     fd=fd0(n);
@@ -1395,12 +1581,12 @@ switch scanner_selector
                     i0_1=out.I0pn1(td1:td2,1);
                     ip_1=out.I0pn1(td1:td2,2);
                     in_1=out.I0pn1(td1:td2,3);
-                    V0_p_1=fft(v0_1-v0_ss)/length(v0_1);
-                    Vp_p_1=fft(vp_1-vp_ss)/length(vp_1);
-                    Vn_p_1=fft(vn_1-vn_ss)/length(vn_1);
-                    I0_p_1=fft(i0_1-i0_ss)/length(i0_1);
-                    Ip_p_1=fft(ip_1-ip_ss)/length(ip_1);
-                    In_p_1=fft(in_1-in_ss)/length(in_1);
+                    V0_p_1=fft(v0_1-v0_ss1)/length(v0_1);
+                    Vp_p_1=fft(vp_1-vp_ss1)/length(vp_1);
+                    Vn_p_1=fft(vn_1-vn_ss1)/length(vn_1);
+                    I0_p_1=fft(i0_1-i0_ss1)/length(i0_1);
+                    Ip_p_1=fft(ip_1-ip_ss1)/length(ip_1);
+                    In_p_1=fft(in_1-in_ss1)/length(in_1);
                     % System 2
                     v0_2=out.V0pn2(td1:td2,1);
                     vp_2=out.V0pn2(td1:td2,2);
@@ -1408,12 +1594,12 @@ switch scanner_selector
                     i0_2=out.I0pn2(td1:td2,1);
                     ip_2=out.I0pn2(td1:td2,2);
                     in_2=out.I0pn2(td1:td2,3);
-                    V0_p_2=fft(v0_2-v0_ss)/length(v0_2);
-                    Vp_p_2=fft(vp_2-vp_ss)/length(vp_2);
-                    Vn_p_2=fft(vn_2-vn_ss)/length(vn_2);
-                    I0_p_2=fft(i0_2-i0_ss)/length(i0_2);
-                    Ip_p_2=fft(ip_2-ip_ss)/length(ip_2);
-                    In_p_2=fft(in_2-in_ss)/length(in_2);
+                    V0_p_2=fft(v0_2-v0_ss2)/length(v0_2);
+                    Vp_p_2=fft(vp_2-vp_ss2)/length(vp_2);
+                    Vn_p_2=fft(vn_2-vn_ss2)/length(vn_2);
+                    I0_p_2=fft(i0_2-i0_ss2)/length(i0_2);
+                    Ip_p_2=fft(ip_2-ip_ss2)/length(ip_2);
+                    In_p_2=fft(in_2-in_ss2)/length(in_2);
                     % n-injection
                     dist_value_p=0;
                     dist_value_n=Vdist_value;
@@ -1426,12 +1612,12 @@ switch scanner_selector
                     i0_1=out.I0pn1(td1:td2,1);
                     ip_1=out.I0pn1(td1:td2,2);
                     in_1=out.I0pn1(td1:td2,3);
-                    V0_n_1=fft(v0_1-v0_ss)/length(v0_1);
-                    Vp_n_1=fft(vp_1-vp_ss)/length(vp_1);
-                    Vn_n_1=fft(vn_1-vn_ss)/length(vn_1);
-                    I0_n_1=fft(i0_1-i0_ss)/length(i0_1);
-                    Ip_n_1=fft(ip_1-ip_ss)/length(ip_1);
-                    In_n_1=fft(in_1-in_ss)/length(in_1);
+                    V0_n_1=fft(v0_1-v0_ss1)/length(v0_1);
+                    Vp_n_1=fft(vp_1-vp_ss1)/length(vp_1);
+                    Vn_n_1=fft(vn_1-vn_ss1)/length(vn_1);
+                    I0_n_1=fft(i0_1-i0_ss1)/length(i0_1);
+                    Ip_n_1=fft(ip_1-ip_ss1)/length(ip_1);
+                    In_n_1=fft(in_1-in_ss1)/length(in_1);
                     % System 2
                     v0_2=out.V0pn2(td1:td2,1);
                     vp_2=out.V0pn2(td1:td2,2);
@@ -1439,12 +1625,12 @@ switch scanner_selector
                     i0_2=out.I0pn2(td1:td2,1);
                     ip_2=out.I0pn2(td1:td2,2);
                     in_2=out.I0pn2(td1:td2,3);
-                    V0_n_2=fft(v0_2-v0_ss)/length(v0_2);
-                    Vp_n_2=fft(vp_2-vp_ss)/length(vp_2);
-                    Vn_n_2=fft(vn_2-vn_ss)/length(vn_2);
-                    I0_n_2=fft(i0_2-i0_ss)/length(i0_2);
-                    Ip_n_2=fft(ip_2-ip_ss)/length(ip_2);
-                    In_n_2=fft(in_2-in_ss)/length(in_2);
+                    V0_n_2=fft(v0_2-v0_ss2)/length(v0_2);
+                    Vp_n_2=fft(vp_2-vp_ss2)/length(vp_2);
+                    Vn_n_2=fft(vn_2-vn_ss2)/length(vn_2);
+                    I0_n_2=fft(i0_2-i0_ss2)/length(i0_2);
+                    Ip_n_2=fft(ip_2-ip_ss2)/length(ip_2);
+                    In_n_2=fft(in_2-in_ss2)/length(in_2);
                     % 0-injection
                     dist_value_p=0;
                     dist_value_n=0;
@@ -1457,12 +1643,12 @@ switch scanner_selector
                     i0_1=out.I0pn1(td1:td2,1);
                     ip_1=out.I0pn1(td1:td2,2);
                     in_1=out.I0pn1(td1:td2,3);
-                    V0_0_1=fft(v0_1-v0_ss)/length(v0_1);
-                    Vp_0_1=fft(vp_1-vp_ss)/length(vp_1);
-                    Vn_0_1=fft(vn_1-vn_ss)/length(vn_1);
-                    I0_0_1=fft(i0_1-i0_ss)/length(i0_1);
-                    Ip_0_1=fft(ip_1-ip_ss)/length(ip_1);
-                    In_0_1=fft(in_1-in_ss)/length(in_1);
+                    V0_0_1=fft(v0_1-v0_ss1)/length(v0_1);
+                    Vp_0_1=fft(vp_1-vp_ss1)/length(vp_1);
+                    Vn_0_1=fft(vn_1-vn_ss1)/length(vn_1);
+                    I0_0_1=fft(i0_1-i0_ss1)/length(i0_1);
+                    Ip_0_1=fft(ip_1-ip_ss1)/length(ip_1);
+                    In_0_1=fft(in_1-in_ss1)/length(in_1);
                     % System 2
                     v0_2=out.V0pn2(td1:td2,1);
                     vp_2=out.V0pn2(td1:td2,2);
@@ -1470,12 +1656,12 @@ switch scanner_selector
                     i0_2=out.I0pn2(td1:td2,1);
                     ip_2=out.I0pn2(td1:td2,2);
                     in_2=out.I0pn2(td1:td2,3);
-                    V0_0_2=fft(v0_2-v0_ss)/length(v0_2);
-                    Vp_0_2=fft(vp_2-vp_ss)/length(vp_2);
-                    Vn_0_2=fft(vn_2-vn_ss)/length(vn_2);
-                    I0_0_2=fft(i0_2-i0_ss)/length(i0_2);
-                    Ip_0_2=fft(ip_2-ip_ss)/length(ip_2);
-                    In_0_2=fft(in_2-in_ss)/length(in_2);
+                    V0_0_2=fft(v0_2-v0_ss2)/length(v0_2);
+                    Vp_0_2=fft(vp_2-vp_ss2)/length(vp_2);
+                    Vn_0_2=fft(vn_2-vn_ss2)/length(vn_2);
+                    I0_0_2=fft(i0_2-i0_ss2)/length(i0_2);
+                    Ip_0_2=fft(ip_2-ip_ss2)/length(ip_2);
+                    In_0_2=fft(in_2-in_ss2)/length(in_2);
                     wd=round(fd/fs)+1;
                     % System 1
                     V0pn1=[V0_0_1(wd) V0_p_1(wd) V0_n_1(wd)
@@ -1518,12 +1704,12 @@ switch scanner_selector
                 ip_1=out.I0pn1(td1:td2,2);
                 in_1=out.I0pn1(td1:td2,3);
                 % FFT of the time-windowed signals
-                V0_p_1=fft(v0_1-v0_ss)/length(v0_1);
-                Vp_p_1=fft(vp_1-vp_ss)/length(vp_1);
-                Vn_p_1=fft(vn_1-vn_ss)/length(vn_1);
-                I0_p_1=fft(i0_1-i0_ss)/length(i0_1);
-                Ip_p_1=fft(ip_1-ip_ss)/length(ip_1);
-                In_p_1=fft(in_1-in_ss)/length(in_1);
+                V0_p_1=fft(v0_1-v0_ss1)/length(v0_1);
+                Vp_p_1=fft(vp_1-vp_ss1)/length(vp_1);
+                Vn_p_1=fft(vn_1-vn_ss1)/length(vn_1);
+                I0_p_1=fft(i0_1-i0_ss1)/length(i0_1);
+                Ip_p_1=fft(ip_1-ip_ss1)/length(ip_1);
+                In_p_1=fft(in_1-in_ss1)/length(in_1);
                 % System 2
                 v0_2=out.V0pn2(td1:td2,1);
                 vp_2=out.V0pn2(td1:td2,2);
@@ -1531,12 +1717,12 @@ switch scanner_selector
                 i0_2=out.I0pn2(td1:td2,1);
                 ip_2=out.I0pn2(td1:td2,2);
                 in_2=out.I0pn2(td1:td2,3);
-                V0_p_2=fft(v0_2-v0_ss)/length(v0_2);
-                Vp_p_2=fft(vp_2-vp_ss)/length(vp_2);
-                Vn_p_2=fft(vn_2-vn_ss)/length(vn_2);
-                I0_p_2=fft(i0_2-i0_ss)/length(i0_2);
-                Ip_p_2=fft(ip_2-ip_ss)/length(ip_2);
-                In_p_2=fft(in_2-in_ss)/length(in_2);
+                V0_p_2=fft(v0_2-v0_ss2)/length(v0_2);
+                Vp_p_2=fft(vp_2-vp_ss2)/length(vp_2);
+                Vn_p_2=fft(vn_2-vn_ss2)/length(vn_2);
+                I0_p_2=fft(i0_2-i0_ss2)/length(i0_2);
+                Ip_p_2=fft(ip_2-ip_ss2)/length(ip_2);
+                In_p_2=fft(in_2-in_ss2)/length(in_2);
                 % n-injection
                 dist_value_n=Vsignal_dist2;
                 dist_value_p=[Vsignal_dist2(:,1),zeros(samples_window,1)];
@@ -1549,12 +1735,12 @@ switch scanner_selector
                 i0_1=out.I0pn1(td1:td2,1);
                 ip_1=out.I0pn1(td1:td2,2);
                 in_1=out.I0pn1(td1:td2,3);
-                V0_n_1=fft(v0_1-v0_ss)/length(v0_1);
-                Vp_n_1=fft(vp_1-vp_ss)/length(vp_1);
-                Vn_n_1=fft(vn_1-vn_ss)/length(vn_1);
-                I0_n_1=fft(i0_1-i0_ss)/length(i0_1);
-                Ip_n_1=fft(ip_1-ip_ss)/length(ip_1);
-                In_n_1=fft(in_1-in_ss)/length(in_1);
+                V0_n_1=fft(v0_1-v0_ss1)/length(v0_1);
+                Vp_n_1=fft(vp_1-vp_ss1)/length(vp_1);
+                Vn_n_1=fft(vn_1-vn_ss1)/length(vn_1);
+                I0_n_1=fft(i0_1-i0_ss1)/length(i0_1);
+                Ip_n_1=fft(ip_1-ip_ss1)/length(ip_1);
+                In_n_1=fft(in_1-in_ss1)/length(in_1);
                 % System 2
                 v0_2=out.V0pn2(td1:td2,1);
                 vp_2=out.V0pn2(td1:td2,2);
@@ -1562,12 +1748,12 @@ switch scanner_selector
                 i0_2=out.I0pn2(td1:td2,1);
                 ip_2=out.I0pn2(td1:td2,2);
                 in_2=out.I0pn2(td1:td2,3);
-                V0_n_2=fft(v0_2-v0_ss)/length(v0_2);
-                Vp_n_2=fft(vp_2-vp_ss)/length(vp_2);
-                Vn_n_2=fft(vn_2-vn_ss)/length(vn_2);
-                I0_n_2=fft(i0_2-i0_ss)/length(i0_2);
-                Ip_n_2=fft(ip_2-ip_ss)/length(ip_2);
-                In_n_2=fft(in_2-in_ss)/length(in_2);
+                V0_n_2=fft(v0_2-v0_ss2)/length(v0_2);
+                Vp_n_2=fft(vp_2-vp_ss2)/length(vp_2);
+                Vn_n_2=fft(vn_2-vn_ss2)/length(vn_2);
+                I0_n_2=fft(i0_2-i0_ss2)/length(i0_2);
+                Ip_n_2=fft(ip_2-ip_ss2)/length(ip_2);
+                In_n_2=fft(in_2-in_ss2)/length(in_2);
                 % 0-injection
                 dist_value_0=Vsignal_dist3;
                 dist_value_p=[Vsignal_dist3(:,1),zeros(samples_window,1)];
@@ -1580,12 +1766,12 @@ switch scanner_selector
                 i0_1=out.I0pn1(td1:td2,1);
                 ip_1=out.I0pn1(td1:td2,2);
                 in_1=out.I0pn1(td1:td2,3);
-                V0_0_1=fft(v0_1-v0_ss)/length(v0_1);
-                Vp_0_1=fft(vp_1-vp_ss)/length(vp_1);
-                Vn_0_1=fft(vn_1-vn_ss)/length(vn_1);
-                I0_0_1=fft(i0_1-i0_ss)/length(i0_1);
-                Ip_0_1=fft(ip_1-ip_ss)/length(ip_1);
-                In_0_1=fft(in_1-in_ss)/length(in_1);
+                V0_0_1=fft(v0_1-v0_ss1)/length(v0_1);
+                Vp_0_1=fft(vp_1-vp_ss1)/length(vp_1);
+                Vn_0_1=fft(vn_1-vn_ss1)/length(vn_1);
+                I0_0_1=fft(i0_1-i0_ss1)/length(i0_1);
+                Ip_0_1=fft(ip_1-ip_ss1)/length(ip_1);
+                In_0_1=fft(in_1-in_ss1)/length(in_1);
                 % System 2
                 v0_2=out.V0pn2(td1:td2,1);
                 vp_2=out.V0pn2(td1:td2,2);
@@ -1593,12 +1779,12 @@ switch scanner_selector
                 i0_2=out.I0pn2(td1:td2,1);
                 ip_2=out.I0pn2(td1:td2,2);
                 in_2=out.I0pn2(td1:td2,3);
-                V0_0_2=fft(v0_2-v0_ss)/length(v0_2);
-                Vp_0_2=fft(vp_2-vp_ss)/length(vp_2);
-                Vn_0_2=fft(vn_2-vn_ss)/length(vn_2);
-                I0_0_2=fft(i0_2-i0_ss)/length(i0_2);
-                Ip_0_2=fft(ip_2-ip_ss)/length(ip_2);
-                In_0_2=fft(in_2-in_ss)/length(in_2);
+                V0_0_2=fft(v0_2-v0_ss2)/length(v0_2);
+                Vp_0_2=fft(vp_2-vp_ss2)/length(vp_2);
+                Vn_0_2=fft(vn_2-vn_ss2)/length(vn_2);
+                I0_0_2=fft(i0_2-i0_ss2)/length(i0_2);
+                Ip_0_2=fft(ip_2-ip_ss2)/length(ip_2);
+                In_0_2=fft(in_2-in_ss2)/length(in_2);
             for n=1:length(In_0_1)
                 % System 1
                     V0pn1=[V0_0_1(n) V0_p_1(n) V0_n_1(n)
@@ -1627,7 +1813,20 @@ switch scanner_selector
                     Znp2(:,n)=Z_0pn_2(3,2);
                     Znn2(:,n)=Z_0pn_2(3,3);
             end
-            fd0=(1:samples_window)*fs;
+            % Frequency limits
+            fvec=(1:samples_window)*fs;
+            f_lim=find((fvec)>=fd0(end),1);
+            Z_0pn1=Z_0pn1(:,:,1:f_lim);
+            Z_0pn2=Z_0pn2(:,:,1:f_lim);
+            Zpp1=Zpp1(1:f_lim);
+            Zpn1=Zpn1(1:f_lim);
+            Znp1=Znp1(1:f_lim);
+            Znn1=Znn1(1:f_lim);
+            Zpp2=Zpp2(1:f_lim);
+            Zpn2=Zpn2(1:f_lim);
+            Znp2=Znp2(1:f_lim);
+            Znn2=Znn2(1:f_lim);
+            fd0=fvec(1:f_lim);
             end
         end
         switch linear

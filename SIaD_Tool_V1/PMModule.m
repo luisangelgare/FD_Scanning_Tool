@@ -204,5 +204,5 @@ function [crossing_frequency, PM] = PMs(f, Y_c, Y_g)
     Phase_g = rad2deg(angle(vec_g(min_index))); % Fase dell'ammettenza della griglia
 
     % Calcolo del Phase Margin (PM)
-    PM = (Phase_c + 180 - Phase_g);
+    PM = 180 + (Phase_c - Phase_g);
 end

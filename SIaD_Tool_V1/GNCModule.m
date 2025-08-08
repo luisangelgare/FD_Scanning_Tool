@@ -80,7 +80,7 @@ for n=1:length(fd0)
                      Ydq2(n), Ydd2(n)];
     Z_sys2(:,:,n) = inv(Y_sys2(:,:,n));
     % Open loop gain
-    L(:,:,n) = eye(2)+Y_sys1(:,:,n)*Z_sys2(:,:,n);
+    L(:,:,n) = Y_sys1(:,:,n)*Z_sys2(:,:,n);
     % Eigenvalues computation
     E(:,n) = eig(L(:,:,n));
 end
@@ -293,15 +293,17 @@ function MIMO_Nyquist2(frequencies, eigenvalues, critical_visible)
     hold on;
     grid on;
     xlabel('Re(\lambda)');
+    ylim([-250 250])
+    xlim([-300 150])
     ylabel('Im(\lambda)');
     % title('Eigenvalues of MIMO open loop L(S)');
 
     % Plot eigenvalue trajectories
-    h1 = plot(real(ordered_eigenvalues(1, :)), imag(ordered_eigenvalues(1, :)), '-', 'DisplayName', 'Eigenvalue 1 [0,+\inf]', 'Color',"r","LineWidth",3);
-    h2 = plot(real(ordered_eigenvalues(1, :)), -imag(ordered_eigenvalues(1, :)), '-','DisplayName', 'Eigenvalue 1 [-inf,0]','Color',"m","LineWidth",3);
+    h1 = plot(real(ordered_eigenvalues(1, :)), imag(ordered_eigenvalues(1, :)), '-', 'DisplayName', '\lambda_{1} [0,+\infty]', 'Color',"r","LineWidth",3);
+    h2 = plot(real(ordered_eigenvalues(1, :)), -imag(ordered_eigenvalues(1, :)), '-','DisplayName', '\lambda_{1} [-\infty,0]','Color',"m","LineWidth",3);
     
-    h3 = plot(real(ordered_eigenvalues(2, :)), imag(ordered_eigenvalues(2, :)), '-', 'DisplayName', 'Eigenvalue 2 [0,+inf]','Color',"b","LineWidth",3);
-    h4 = plot(real(ordered_eigenvalues(2, :)), -imag(ordered_eigenvalues(2, :)), '-','DisplayName', 'Eigenvalue 2 [-inf,0]','Color',"k","LineWidth",3);
+    h3 = plot(real(ordered_eigenvalues(2, :)), imag(ordered_eigenvalues(2, :)), '-', 'DisplayName', '\lambda_{2} [0,+\infty]','Color',"b","LineWidth",3);
+    h4 = plot(real(ordered_eigenvalues(2, :)), -imag(ordered_eigenvalues(2, :)), '-','DisplayName', '\lambda_{2} [-\infty,0]','Color',"k","LineWidth",3);
     
     if critical_visible == 1
         h5 = plot(-1, 0, 'pentagram', 'MarkerSize', 5, 'Color', "g","LineWidth",3); 
@@ -310,6 +312,40 @@ function MIMO_Nyquist2(frequencies, eigenvalues, critical_visible)
     else
         disp("Error in the input: 0- to hide (-1,0) point, 1- to show it")
     end
+    
+       % --- Cuadro de zoom ---
+    % Define los límites del zoom (modifica estos valores)
+    X1 = -3; X2 = 1;
+    Y1 = -0.5; Y2 = 0.5;
+
+%     % Dibuja el rectángulo de zoom
+%     rectangle('Position', [X1, Y1, X2 - X1, Y2 - Y1], ...
+%               'EdgeColor', 'k', ...
+%               'LineWidth', 1.5, ...
+%               'LineStyle', '--');
+    % --- Inset: lupa con zoom ---
+    % Crea axes pequeños (lupa)
+    axInset = axes('Position', [0.65, 0.65, 0.25, 0.25]); % [x y width height] en fracción de figura
+    box on;
+    hold on;
+    grid on;
+
+    % Traza los mismos datos en la lupa
+    plot(real(ordered_eigenvalues(1, :)), imag(ordered_eigenvalues(1, :)), '-', 'Color',"r","LineWidth",1.5);
+    plot(real(ordered_eigenvalues(1, :)), -imag(ordered_eigenvalues(1, :)), '-', 'Color',"m","LineWidth",1.5);
+    plot(real(ordered_eigenvalues(2, :)), imag(ordered_eigenvalues(2, :)), '-', 'Color',"b","LineWidth",1.5);
+    plot(real(ordered_eigenvalues(2, :)), -imag(ordered_eigenvalues(2, :)), '-', 'Color',"k","LineWidth",1.5);
+
+    % Punto crítico si aplica
+    if critical_visible == 1
+        plot(-1, 0, 'p', 'MarkerSize', 5, 'Color', "g","LineWidth",1.5); 
+    end
+
+    % Ajusta límites del inset (zoom)
+    xlim([X1, X2]);
+    ylim([Y1, Y2]);
+%     title('Zoom');
+
     legend([h2, h1, h4, h3]);
     hold off;
 end

@@ -56,7 +56,7 @@ figure;
 hold on;
 grid on;
 xlabel('Frequency (Hz)', 'FontSize', 12);
-ylabel('Minimum Eigenvalue', 'FontSize', 12);
+ylabel('Minimum Eigenvalue (\lambda_{min})', 'FontSize', 12);
 title('Passivity Evaluation via Minimum Eigenvalues', 'FontSize', 14);
 
 plot(fd0, lambda_min_scan1, '-', 'DisplayName', 'System 1', 'Color', 'b', 'LineWidth', 3);
