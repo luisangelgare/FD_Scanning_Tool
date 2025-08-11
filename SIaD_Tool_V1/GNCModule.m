@@ -56,7 +56,7 @@ for n=1:length(fd0)
     Y_sys2(:,:,n) = Y_abc2(:,:,n);
     Z_sys2(:,:,n) = inv(Y_sys2(:,:,n));
     % Open loop gain
-    L(:,:,n) = eye(3)+Y_sys1(:,:,n)*Z_sys2(:,:,n);
+    L(:,:,n) = Y_sys1(:,:,n)*Z_sys2(:,:,n);
     % Eigenvalues computation
     E(:,n) = eig(L(:,:,n));
 end
@@ -105,7 +105,7 @@ for n=1:length(fd0)
     Y_sys2(:,:,n) = Y_0pn2(:,:,n);
     Z_sys2(:,:,n) = inv(Y_sys2(:,:,n));
     % Open loop gain
-    L(:,:,n) = eye(3)+Y_sys1(:,:,n)*Z_sys2(:,:,n);
+    L(:,:,n) = Y_sys1(:,:,n)*Z_sys2(:,:,n);
     % Eigenvalues computation
     E(:,n) = eig(L(:,:,n));
 end
@@ -135,7 +135,7 @@ for n=1:length(fd0)
     Z_sys2(:,:,n) = Z_abc2(:,:,n);
     Y_sys2(:,:,n) = inv(Z_sys2(:,:,n));
     % Open loop gain
-    L(:,:,n) = eye(3)+Y_sys1(:,:,n)*Z_sys2(:,:,n);
+    L(:,:,n) = Y_sys1(:,:,n)*Z_sys2(:,:,n);
     % Eigenvalues computation
     E(:,n) = eig(L(:,:,n));
 end
@@ -159,7 +159,7 @@ for n=1:length(fd0)
                      Zdq2(n), Zdd2(n)];
     Y_sys2(:,:,n) = inv(Z_sys2(:,:,n));
     % Open loop gain
-    L(:,:,n) = eye(2)+Y_sys1(:,:,n)*Z_sys2(:,:,n);
+    L(:,:,n) = Y_sys1(:,:,n)*Z_sys2(:,:,n);
     % Eigenvalues computation
     E(:,n) = eig(L(:,:,n));
 end
@@ -184,7 +184,7 @@ for n=1:length(fd0)
     Z_sys2(:,:,n) = Z_0pn2(:,:,n);
     Y_sys2(:,:,n) = inv(Z_sys2(:,:,n));
     % Open loop gain
-    L(:,:,n) = eye(3)+Y_sys1(:,:,n)*Z_sys2(:,:,n);
+    L(:,:,n) = Y_sys1(:,:,n)*Z_sys2(:,:,n);
     % Eigenvalues computation
     E(:,n) = eig(L(:,:,n));
 end

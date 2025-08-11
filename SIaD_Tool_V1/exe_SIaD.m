@@ -18,7 +18,10 @@ model='Your_Project_Name'; % Main canvas name of your project (same as program u
 Tinit=6; % Initialization time (arbitray for select the steady state)
 fs=1; % Sampling frequency for FTT (specify the value in Hz for minimal freq)
 delta_t=25E-6; % Fixed step time
+% --- Specify the frequency vector for single-tone perturbations
 fd0=unique(round(logspace(0,log10((1/delta_t)/4),3)));  % Perturbation frequencies in Hz
+% --- Specify the frequency band for multi-tone or PRBS perturbations
+% fd0=[0.001 6*50];  % Frequency band in Hz
 
 %% Steady state and disturbance sources data
 
@@ -42,6 +45,11 @@ jw1=1i*2*pi*(logspace(0,log10(1/delta_t),samples)); % Complex frequency vector
 % Put here your linear model named as "Y_RLC1" and "Y_RLC2" or viceversa for impedance.
 
 %% Scanning options available
+
+% Steady-state calculation:
+% 1 -> Yes, take from 1st simulation (closed loop)
+% 0 -> No, I addded the d- and q-component previously (open loop)
+ss_cal=1;
 
 % Scanner settings:
 % 1 -> Voltage perturbation 

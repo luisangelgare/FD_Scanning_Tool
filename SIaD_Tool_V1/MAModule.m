@@ -47,9 +47,9 @@ Z_sys_full = zeros(3,3,length(fd0)); % Initial zero L open loop matriz
 for n=1:length(fd0)
     Y_system1 = Y_abc1(:,:,n);
     Y_system2 = Y_abc2(:,:,n);
-    Z_sys_full(:,:,n) = inv(Y_system1+Y_system2);
+    Y_sys_full(:,:,n) = Y_system1+Y_system2;
 end
-ZabcModalAnalysis(Z_sys_full,fd0,{'Sys1','Sys2'});
+ZabcModalAnalysis(Y_sys_full,fd0,{'Sys1','Sys2'});
     case 2
 %% dq0 sequence
 % Set initial data and matrices:
@@ -74,9 +74,9 @@ Z_sys_full = zeros(3,3,length(fd0)); % Initial zero L open loop matriz
 for n=1:length(fd0)
     Y_system1 = Y_0pn1(:,:,n);
     Y_system2 = Y_0pn2(:,:,n);
-    Z_sys_full(:,:,n) = inv(Y_system1+Y_system2);
+    Y_sys_full(:,:,n) = Y_system1+Y_system2;
 end
-ZabcModalAnalysis(Z_sys_full,fd0,{'Sys1','Sys2'});
+ZabcModalAnalysis(Y_sys_full,fd0,{'Sys1','Sys2'});
 end
     
     case 2
@@ -92,9 +92,9 @@ Z_sys_full = zeros(3,3,length(fd0)); % Initial zero L open loop matriz
 for n=1:length(fd0)
     Y_system1 = inv(Z_abc1(:,:,n));
     Y_system2 = inv(Z_abc2(:,:,n));
-    Z_sys_full(:,:,n) = inv(Y_system1+Y_system2);
+    Y_sys_full(:,:,n) = Y_system1+Y_system2;
 end
-ZabcModalAnalysis(Z_sys_full,fd0,{'Sys1','Sys2'});
+ZabcModalAnalysis(Y_sys_full,fd0,{'Sys1','Sys2'});
     case 2
 %% dq0 sequence
 % Set initial data and matrices:
@@ -107,9 +107,9 @@ for n=1:length(fd0)
                      Zdq1(n), Zdd1(n)]);
     Y_system2 = inv([Zqq2(n), Zqd2(n); 
                      Zdq2(n), Zdd2(n)]);
-    Z_sys_full(:,:,n) = inv(Y_system1+Y_system2);
+    Y_sys_full(:,:,n) = Y_system1+Y_system2;
 end
-Zdq0ModalAnalysis(Z_sys_full,fd0,{'Sys1','Sys2'});
+Zdq0ModalAnalysis(Y_sys_full,fd0,{'Sys1','Sys2'});
     case 3
 %% 0pn sequence
 % Frequency vector of measurements: fd0
